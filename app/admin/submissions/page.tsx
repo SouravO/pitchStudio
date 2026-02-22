@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getStartups } from '@/lib/actions';
+import { getStartups, updateStartupStatus } from '@/lib/actions';
 import { Startup } from '@/types/startup';
+import toast from 'react-hot-toast';
+import SubmissionModal from '@/components/admin/SubmissionModal';
 import {
     Search,
     ChevronLeft,
@@ -27,12 +29,46 @@ export default function SubmissionsPage({
     const [startups, setStartups] = useState<Startup[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [togglingId, setTogglingId] = useState<string | null>(null);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [stage, setStage] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    
+    // Modal state
+    const [selectedStartup, setSelectedStartup] = useState<Startup | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const pageSize = 10;
+
+    const handleToggleStatus = async (id: string, currentStatus: string) => {
+        const newStatus = currentStatus === 'Selected' ? 'Pending' : 'Selected';
+        setTogglingId(id);
+        try {
+            const result = await updateStartupStatus(id, newStatus);
+            if (result.success) {
+                toast.success(`Marked as ${newStatus}`);
+                fetchStartups();
+                
+                // Update selected startup if modal is open
+                if (selectedStartup && selectedStartup.id === id) {
+                    setSelectedStartup({ ...selectedStartup, status: newStatus });
+                }
+            } else {
+                toast.error(result.error || 'Failed to update status');
+            }
+        } catch {
+            toast.error('An unexpected error occurred');
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    const handleRowClick = (startup: Startup) => {
+        setSelectedStartup(startup);
+        setIsModalOpen(true);
+    };
 
     const fetchStartups = useCallback(async () => {
         setLoading(true);
@@ -237,18 +273,20 @@ export default function SubmissionsPage({
                             </thead>
                             <tbody>
                                 {startups.map((startup) => (
-                                    <tr key={startup.id}>
+                                    <tr 
+                                        key={startup.id} 
+                                        onClick={() => handleRowClick(startup)}
+                                    >
                                         <td>
-                                            <Link
-                                                href={`/admin/submissions/${startup.id}`}
+                                            <span
                                                 style={{
-                                                    textDecoration: 'none',
                                                     color: 'var(--foreground)',
                                                     fontWeight: 500,
+                                                    cursor: 'pointer'
                                                 }}
                                             >
                                                 {startup.startup_name}
-                                            </Link>
+                                            </span>
                                         </td>
                                         <td>{startup.founder_names}</td>
                                         <td style={{ fontSize: '0.85rem' }}>{startup.email}</td>
@@ -260,14 +298,30 @@ export default function SubmissionsPage({
                                                 : '—'}
                                         </td>
                                         <td>
-                                            <span
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggleStatus(startup.id, startup.status);
+                                                }}
+                                                disabled={togglingId === startup.id}
                                                 className={`badge ${startup.status === 'Selected'
-                                                        ? 'badge-selected'
-                                                        : 'badge-pending'
+                                                    ? 'badge-selected'
+                                                    : 'badge-pending'
                                                     }`}
+                                                style={{
+                                                    cursor: togglingId === startup.id ? 'wait' : 'pointer',
+                                                    border: 'none',
+                                                    transition: 'all 0.2s ease',
+                                                    opacity: togglingId === startup.id ? 0.6 : 1,
+                                                }}
+                                                title={`Click to mark as ${startup.status === 'Selected' ? 'Pending' : 'Selected'}`}
                                             >
-                                                {startup.status}
-                                            </span>
+                                                {togglingId === startup.id ? (
+                                                    <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                                                ) : (
+                                                    startup.status
+                                                )}
+                                            </button>
                                         </td>
                                         <td style={{ whiteSpace: 'nowrap' }}>
                                             {new Date(startup.created_at).toLocaleDateString('en-IN', {
@@ -282,6 +336,7 @@ export default function SubmissionsPage({
                         </table>
                     </div>
                 )}
+
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -331,6 +386,17 @@ export default function SubmissionsPage({
                     </div>
                 )}
             </div>
+
+            {/* Submission Detail Modal */}
+            {selectedStartup && (
+                <SubmissionModal
+                    startup={selectedStartup}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onToggleStatus={handleToggleStatus}
+                    isToggling={togglingId === selectedStartup.id}
+                />
+            )}
         </div>
     );
 }

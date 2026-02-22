@@ -425,6 +425,7 @@ export default function Home() {
         </div>
         © {new Date().getFullYear()} Pitch Studio. All rights reserved.
       </footer>
+
     </div>
   );
 }
