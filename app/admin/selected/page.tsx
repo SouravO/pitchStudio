@@ -178,9 +178,10 @@ export default function SelectedPage() {
                     <select
                         value={`${sortBy}_${sortOrder}`}
                         onChange={(e) => {
-                            const [by, order] = e.target.value.split('_');
-                            setSortBy(by);
-                            setSortOrder(order as 'asc' | 'desc');
+                            const val = e.target.value;
+                            const lastUnderscore = val.lastIndexOf('_');
+                            setSortBy(val.slice(0, lastUnderscore));
+                            setSortOrder(val.slice(lastUnderscore + 1) as 'asc' | 'desc');
                         }}
                         style={{
                             padding: '10px 12px',

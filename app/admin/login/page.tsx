@@ -83,9 +83,9 @@ export default function AdminLoginPage() {
                         marginBottom: '48px',
                     }}
                 >
-                    <Command size={20} style={{ color: '#fff' }} />
+                    {/* <Command size={20} style={{ color: '#fff' }} /> */}
                     <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.2em', color: '#fff' }}>
-                        PITCH STUDIO
+                       <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
                     </span>
                 </div>
 
