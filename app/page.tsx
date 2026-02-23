@@ -139,7 +139,7 @@ export default function PitchStudioNoir() {
         <div style={{ display: 'flex', alignItems: 'start',  }}>
           {/* <Rocket size={24} /> */}
           <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
-            <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
+            <img src="/assets/logo.png" alt="Logo" width={120} height={120} />
           </span>
         </div>
         <Link href="/admin/login" style={{

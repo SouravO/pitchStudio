@@ -150,7 +150,7 @@ export default function StartupVoidForm() {
 
                                 {step === 1 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">BASIC<br />INFO_</h1>
+                                        <h1 className="noir-title">BASIC <span /> INFO_</h1>
                                         <input name="startup_name" placeholder="STARTUP NAME *" value={formData.startup_name} onChange={handleChange} required />
                                         <input name="founder_names" placeholder="FOUNDER NAME(S) *" value={formData.founder_names} onChange={handleChange} required />
                                         <input name="designation" placeholder="DESIGNATION (CEO / CO-FOUNDER / ETC.)" value={formData.designation} onChange={handleChange} />
@@ -413,10 +413,10 @@ export default function StartupVoidForm() {
                     .visual-column { display: none; }
                     .form-column { flex: 1; padding: 30px 0px 100px 20px; width: 100%; max-width: 100%; }
                     .noir-layout { overflow-x: hidden; }
-                    .noir-title { font-size: 6vw; }
+                    .noir-title { font-size: 10vw; }
                     .noir-footer { padding-bottom: 20px; }
                     .grid-2 { grid-template-columns: 1fr; gap: 15px; }
-                    input, textarea, .noir-select { font-size: 16px; }
+                    input, textarea, .noir-select { font-size: 16px; } 
                 }
             `}</style>
         </div>
