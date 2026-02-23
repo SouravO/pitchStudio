@@ -93,6 +93,30 @@ export default function StartupVoidForm() {
         setFormData(prev => ({ ...prev, fund_utilization: formatted }));
     };
 
+    const handleSetStep = () => {
+        // Validate required fields for Step 1
+        if (step === 1) {
+            const missingFields = [];
+            if (!formData.startup_name) missingFields.push('Startup Name');
+            if (!formData.founder_names) missingFields.push('Founder Name(s)');
+            if (!formData.email) missingFields.push('Email');
+
+            if (missingFields.length > 0) {
+                toast.error(`Please fill in: ${missingFields.join(', ')}`);
+                return;
+            }
+
+            // Email format validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                toast.error('Please enter a valid email address.');
+                return;
+            }
+        }
+        setStep(s => s + 1);
+    };
+
+    
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
@@ -339,7 +363,7 @@ export default function StartupVoidForm() {
                                 )}
                                 <footer className="noir-footer pb-10">
                                     <button className="btn-secondary" onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1}><ChevronLeft size={20} /></button>
-                                    <button className="btn-primary" onClick={() => (step === 10 ? handleSubmit() : setStep(s => s + 1))}>
+                                    <button className="btn-primary" onClick={() => (step === 10 ? handleSubmit() : handleSetStep())}>
                                         {isSubmitting ? <Loader2 className="animate-spin" /> : <span>{step === 10 ? "EXECUTE_VOID" : "PROCEED"}</span>}
                                         {!isSubmitting && (step === 10 ? <Send size={18} /> : <Plus size={18} />)}
                                     </button>
