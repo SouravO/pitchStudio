@@ -118,6 +118,10 @@ export default function StartupVoidForm() {
                                             <input name="linkedin" placeholder="LINKEDIN" value={formData.linkedin} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
+                                            <input name="facebook" placeholder="FACEBOOK" value={formData.facebook} onChange={handleChange} />
+                                            <input name="youtube" placeholder="YOUTUBE" value={formData.youtube} onChange={handleChange} />
+                                        </div>
+                                        <div className="grid-2">
                                             <input name="year_of_incorporation" type="number" placeholder="YEAR OF INCORPORATION" value={formData.year_of_incorporation || ''} onChange={handleChange} />
                                             <select name="legal_structure" value={formData.legal_structure} onChange={handleChange} className="noir-select">
                                                 <option value="">LEGAL STRUCTURE</option>
@@ -173,13 +177,14 @@ export default function StartupVoidForm() {
                                             <input name="gross_margin" type="number" placeholder="GROSS MARGIN %" value={formData.gross_margin || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="marketing_cac" type="number" placeholder="MARKETING / CAC (₹)" value={formData.marketing_cac || ''} onChange={handleChange} />
+                                            <input name="cost_of_production" type="number" placeholder="COST OF PRODUCTION (₹)" value={formData.cost_of_production || ''} onChange={handleChange} />
                                             <input name="delivery_cost" type="number" placeholder="DELIVERY COST (₹)" value={formData.delivery_cost || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
+                                            <input name="marketing_cac" type="number" placeholder="MARKETING / CAC (₹)" value={formData.marketing_cac || ''} onChange={handleChange} />
                                             <input name="net_profit_margin" type="number" placeholder="NET PROFIT %" value={formData.net_profit_margin || ''} onChange={handleChange} />
-                                            <input name="contribution_margin" type="number" placeholder="CONTRIBUTION MARGIN (₹)" value={formData.contribution_margin || ''} onChange={handleChange} />
                                         </div>
+                                        <input name="contribution_margin" type="number" placeholder="CONTRIBUTION MARGIN (₹)" value={formData.contribution_margin || ''} onChange={handleChange} />
                                     </div>
                                 )}
 
@@ -195,6 +200,7 @@ export default function StartupVoidForm() {
                                             <input name="revenue_year1" type="number" placeholder="REV YEAR 1 (₹)" value={formData.revenue_year1 || ''} onChange={handleChange} />
                                             <input name="revenue_year2" type="number" placeholder="REV YEAR 2 (₹)" value={formData.revenue_year2 || ''} onChange={handleChange} />
                                         </div>
+                                        <input name="revenue_year3" type="number" placeholder="REV YEAR 3 (₹)" value={formData.revenue_year3 || ''} onChange={handleChange} />
                                         <div className="grid-2">
                                             <input name="current_monthly_revenue" type="number" placeholder="MONTHLY REVENUE (₹)" value={formData.current_monthly_revenue || ''} onChange={handleChange} />
                                             <input name="monthly_growth_rate" type="number" placeholder="GROWTH RATE %" value={formData.monthly_growth_rate || ''} onChange={handleChange} />
