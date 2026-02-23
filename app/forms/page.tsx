@@ -337,18 +337,18 @@ export default function StartupVoidForm() {
                                         <div style={{ fontSize: '0.65rem', color: countWords(formData.why_shortlist) >= 150 ? '#ff4444' : '#444', textAlign: 'right', marginTop: '-5px' }}>{countWords(formData.why_shortlist)} / 150 words</div>
                                     </div>
                                 )}
-
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    <footer className="noir-footer">
+                                 <footer className="noir-footer">
                         <button className="btn-secondary" onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1}><ChevronLeft size={20} /></button>
                         <button className="btn-primary" onClick={() => (step === 10 ? handleSubmit() : setStep(s => s + 1))}>
                             {isSubmitting ? <Loader2 className="animate-spin" /> : <span>{step === 10 ? "EXECUTE_VOID" : "PROCEED"}</span>}
                             {!isSubmitting && (step === 10 ? <Send size={18} /> : <Plus size={18} />)}
                         </button>
                     </footer>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                   
                 </section>
 
                 <section className="visual-column">
