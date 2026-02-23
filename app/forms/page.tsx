@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { 
+import {
     MeshTransmissionMaterial, PerspectiveCamera, Environment, Float,
     MeshDistortMaterial, ContactShadows
 } from '@react-three/drei';
@@ -13,9 +13,9 @@ import toast from 'react-hot-toast';
 import { submitStartup } from '@/lib/actions';
 
 // --- VISUAL ENGINE (The Monolith) ---
-function VoidMonolith({ step, mouse }) {
-    const meshRef = useRef();
-    const coreRef = useRef();
+function VoidMonolith({ step, mouse }: { step: number; mouse: React.RefObject<number[]> }) {
+    const meshRef = useRef<any>(null);
+    const coreRef = useRef<any>(null);
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
         if (meshRef.current) {
@@ -59,13 +59,13 @@ export default function StartupVoidForm() {
         pitch_deck_link: '', financial_projection_link: '', prepared_for_qa: null, why_shortlist: '',
     });
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         let parsedValue = type === 'number' ? (value === '' ? null : Number(value)) : value;
         setFormData(prev => ({ ...prev, [name]: parsedValue }));
     };
 
-    const handleBool = (name, val) => setFormData(prev => ({ ...prev, [name]: val }));
+    const handleBool = (name: string, val: boolean) => setFormData(prev => ({ ...prev, [name]: val }));
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
@@ -97,10 +97,10 @@ export default function StartupVoidForm() {
                     <div className="form-scroll-wrapper">
                         <AnimatePresence mode="wait">
                             <motion.div key={step} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.5 }} className="step-content">
-                                
+
                                 {step === 1 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">BASIC<br/>INFO_</h1>
+                                        <h1 className="noir-title">BASIC<br />INFO_</h1>
                                         <input name="startup_name" placeholder="STARTUP NAME *" value={formData.startup_name} onChange={handleChange} required />
                                         <input name="founder_names" placeholder="FOUNDER NAME(S) *" value={formData.founder_names} onChange={handleChange} required />
                                         <input name="designation" placeholder="DESIGNATION" value={formData.designation} onChange={handleChange} />
@@ -136,7 +136,7 @@ export default function StartupVoidForm() {
 
                                 {step === 2 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">FOUNDER<br/>PROFILE_</h1>
+                                        <h1 className="noir-title">FOUNDER<br />PROFILE_</h1>
                                         <input name="education" placeholder="HIGHEST EDUCATION" value={formData.education} onChange={handleChange} />
                                         <input name="total_experience_years" type="number" placeholder="TOTAL EXPERIENCE (YEARS)" value={formData.total_experience_years || ''} onChange={handleChange} />
                                         <textarea name="industry_experience" placeholder="INDUSTRY EXPERIENCE" value={formData.industry_experience} onChange={handleChange} />
@@ -296,7 +296,7 @@ export default function StartupVoidForm() {
                     </div>
 
                     <footer className="noir-footer">
-                        <button className="btn-secondary" onClick={() => setStep(s => Math.max(1, s-1))} disabled={step === 1}><ChevronLeft size={20} /></button>
+                        <button className="btn-secondary" onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1}><ChevronLeft size={20} /></button>
                         <button className="btn-primary" onClick={() => (step === 10 ? handleSubmit() : setStep(s => s + 1))}>
                             {isSubmitting ? <Loader2 className="animate-spin" /> : <span>{step === 10 ? "EXECUTE_VOID" : "PROCEED"}</span>}
                             {!isSubmitting && (step === 10 ? <Send size={18} /> : <Plus size={18} />)}
