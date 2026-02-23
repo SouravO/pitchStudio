@@ -116,7 +116,7 @@ export default function StartupVoidForm() {
         setStep(s => s + 1);
     };
 
-    
+
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
@@ -411,9 +411,12 @@ export default function StartupVoidForm() {
                 .noir-select option { background: #000; color: #fff; }
                 @media (max-width: 768px) {
                     .visual-column { display: none; }
-                    .form-column { padding: 30px 20px 100px 20px; }
+                    .form-column { flex: 1; padding: 30px 0px 100px 20px; width: 100%; max-width: 100%; }
+                    .noir-layout { overflow-x: hidden; }
                     .noir-title { font-size: 6vw; }
                     .noir-footer { padding-bottom: 20px; }
+                    .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+                    input, textarea, .noir-select { font-size: 16px; }
                 }
             `}</style>
         </div>
