@@ -385,6 +385,11 @@ export default function StartupVoidForm() {
                 .visual-column { flex: 1.2; position: relative; background: #000; }
                 .canvas-holder { position: absolute; inset: 0; filter: contrast(1.1); }
                 .noir-select option { background: #000; color: #fff; }
+                @media (max-width: 768px) {
+                    .visual-column { display: none; }
+                    .form-column { padding: 30px 20px; }
+                    .noir-title { font-size: 6vw; }
+                }
             `}</style>
         </div>
     );
