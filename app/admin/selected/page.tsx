@@ -10,7 +10,6 @@ import {
     ChevronRight,
     Loader2,
     Download,
-    SlidersHorizontal,
     Star,
 } from 'lucide-react';
 
@@ -54,7 +53,6 @@ export default function SelectedPage() {
 
     const handleExportCSV = () => {
         if (startups.length === 0) return;
-
         const headers = [
             'Startup Name', 'Founder', 'Email', 'City', 'Country',
             'Stage', 'Status', 'Revenue', 'Date',
@@ -85,7 +83,7 @@ export default function SelectedPage() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: '24px',
+                    marginBottom: '28px',
                     flexWrap: 'wrap',
                     gap: '12px',
                 }}
@@ -93,51 +91,70 @@ export default function SelectedPage() {
                 <div>
                     <h1
                         style={{
-                            fontSize: '1.8rem',
-                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
                             marginBottom: '4px',
-                            letterSpacing: '-0.02em',
+                            letterSpacing: '0.15em',
+                            textTransform: 'uppercase',
+                            color: '#fff',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '10px',
+                            gap: '8px',
                         }}
                     >
-                        <Star size={24} style={{ color: 'var(--status-selected)' }} />
-                        Selected Startups
+                        <Star size={14} style={{ color: '#2dd4a0' }} />
+                        SELECTED STARTUPS
                     </h1>
-                    <p style={{ color: 'var(--foreground-muted)', fontSize: '0.9rem' }}>
+                    <p style={{ color: '#333', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
                         {totalCount} selected startup{totalCount !== 1 ? 's' : ''}
                     </p>
                 </div>
                 {startups.length > 0 && (
-                    <button onClick={handleExportCSV} className="btn-secondary btn-sm">
-                        <Download size={14} />
-                        Export CSV
+                    <button
+                        onClick={handleExportCSV}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            background: 'transparent',
+                            border: '1px solid #222',
+                            borderRadius: '6px',
+                            color: '#999',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            letterSpacing: '0.05em',
+                        }}
+                    >
+                        <Download size={12} />
+                        EXPORT CSV
                     </button>
                 )}
             </div>
 
             {/* Filters */}
             <div
-                className="glass-card-subtle"
                 style={{
-                    padding: '16px 20px',
+                    padding: '14px 18px',
                     marginBottom: '20px',
                     display: 'flex',
-                    gap: '12px',
+                    gap: '10px',
                     flexWrap: 'wrap',
                     alignItems: 'center',
+                    background: '#0a0a0a',
+                    border: '1px solid #111',
+                    borderRadius: '10px',
                 }}
             >
                 <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
                     <Search
-                        size={16}
+                        size={14}
                         style={{
                             position: 'absolute',
                             left: '12px',
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            color: 'var(--foreground-dimmed)',
+                            color: '#333',
                         }}
                     />
                     <input
@@ -145,12 +162,19 @@ export default function SelectedPage() {
                         placeholder="Search selected startups..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="form-input"
-                        style={{ paddingLeft: '36px', fontSize: '0.85rem' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 14px 10px 34px',
+                            background: '#000',
+                            border: '1px solid #222',
+                            borderRadius: '8px',
+                            color: '#fff',
+                            fontSize: '0.8rem',
+                            outline: 'none',
+                        }}
                     />
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <SlidersHorizontal size={14} style={{ color: 'var(--foreground-dimmed)' }} />
                     <select
                         value={`${sortBy}_${sortOrder}`}
                         onChange={(e) => {
@@ -158,8 +182,16 @@ export default function SelectedPage() {
                             setSortBy(by);
                             setSortOrder(order as 'asc' | 'desc');
                         }}
-                        className="form-input"
-                        style={{ width: 'auto', fontSize: '0.85rem', padding: '10px 12px', cursor: 'pointer' }}
+                        style={{
+                            padding: '10px 12px',
+                            background: '#000',
+                            border: '1px solid #222',
+                            borderRadius: '8px',
+                            color: '#999',
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            outline: 'none',
+                        }}
                     >
                         <option value="created_at_desc">Newest First</option>
                         <option value="created_at_asc">Oldest First</option>
@@ -169,13 +201,13 @@ export default function SelectedPage() {
             </div>
 
             {/* Table */}
-            <div className="glass-card-subtle" style={{ overflow: 'hidden' }}>
+            <div style={{ background: '#0a0a0a', border: '1px solid #111', borderRadius: '10px', overflow: 'hidden' }}>
                 {loading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-                        <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--brand-primary)' }} />
+                        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#fff' }} />
                     </div>
                 ) : startups.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: 'var(--foreground-dimmed)' }}>
+                    <div style={{ textAlign: 'center', padding: '60px', color: '#333', fontSize: '0.85rem' }}>
                         {search ? 'No matches found' : 'No startups have been selected yet'}
                     </div>
                 ) : (
@@ -198,7 +230,7 @@ export default function SelectedPage() {
                                         <td>
                                             <Link
                                                 href={`/admin/submissions/${startup.id}`}
-                                                style={{ textDecoration: 'none', color: 'var(--foreground)', fontWeight: 500 }}
+                                                style={{ textDecoration: 'none', color: '#fff', fontWeight: 500 }}
                                             >
                                                 {startup.startup_name}
                                             </Link>
@@ -232,29 +264,43 @@ export default function SelectedPage() {
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            padding: '16px 20px',
-                            borderTop: '1px solid var(--border-color)',
+                            padding: '14px 20px',
+                            borderTop: '1px solid #111',
                         }}
                     >
-                        <span style={{ fontSize: '0.85rem', color: 'var(--foreground-dimmed)' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#333' }}>
                             Page {page} of {totalPages}
                         </span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
                             <button
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="btn-secondary btn-sm"
-                                style={{ padding: '6px 12px', opacity: page === 1 ? 0.3 : 1 }}
+                                style={{
+                                    padding: '6px 10px',
+                                    background: 'transparent',
+                                    border: '1px solid #222',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                    opacity: page === 1 ? 0.3 : 1,
+                                }}
                             >
-                                <ChevronLeft size={16} />
+                                <ChevronLeft size={14} />
                             </button>
                             <button
                                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
-                                className="btn-secondary btn-sm"
-                                style={{ padding: '6px 12px', opacity: page === totalPages ? 0.3 : 1 }}
+                                style={{
+                                    padding: '6px 10px',
+                                    background: 'transparent',
+                                    border: '1px solid #222',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                    opacity: page === totalPages ? 0.3 : 1,
+                                }}
                             >
-                                <ChevronRight size={16} />
+                                <ChevronRight size={14} />
                             </button>
                         </div>
                     </div>

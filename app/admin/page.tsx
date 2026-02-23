@@ -52,10 +52,10 @@ export default function AdminDashboardPage() {
                 }}
             >
                 <Loader2
-                    size={32}
+                    size={24}
                     style={{
                         animation: 'spin 1s linear infinite',
-                        color: 'var(--brand-primary)',
+                        color: '#fff',
                     }}
                 />
             </div>
@@ -64,49 +64,43 @@ export default function AdminDashboardPage() {
 
     const statCards = [
         {
-            label: 'Total Applications',
+            label: 'TOTAL APPLICATIONS',
             value: analytics.total,
-            icon: <Users size={22} />,
-            color: 'var(--brand-primary-light)',
-            bg: 'rgba(99, 102, 241, 0.1)',
+            icon: <Users size={18} />,
         },
         {
-            label: 'Selected',
+            label: 'SELECTED',
             value: analytics.selected,
-            icon: <Star size={22} />,
-            color: 'var(--status-selected)',
-            bg: 'rgba(16, 185, 129, 0.1)',
+            icon: <Star size={18} />,
         },
         {
-            label: 'Pending',
+            label: 'PENDING',
             value: analytics.pending,
-            icon: <BarChart3 size={22} />,
-            color: 'var(--status-pending)',
-            bg: 'rgba(245, 158, 11, 0.1)',
+            icon: <BarChart3 size={18} />,
         },
         {
-            label: 'Selection Ratio',
+            label: 'SELECTION RATIO',
             value: `${analytics.selectionRatio}%`,
-            icon: <TrendingUp size={22} />,
-            color: 'var(--brand-accent)',
-            bg: 'rgba(167, 139, 250, 0.1)',
+            icon: <TrendingUp size={18} />,
         },
     ];
 
     return (
         <div className="animate-fade-in">
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '40px' }}>
                 <h1
                     style={{
-                        fontSize: '1.8rem',
-                        fontWeight: 700,
-                        marginBottom: '6px',
-                        letterSpacing: '-0.02em',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        marginBottom: '4px',
+                        letterSpacing: '0.15em',
+                        textTransform: 'uppercase',
+                        color: '#fff',
                     }}
                 >
-                    Dashboard
+                    DASHBOARD
                 </h1>
-                <p style={{ color: 'var(--foreground-muted)', fontSize: '0.95rem' }}>
+                <p style={{ color: '#333', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                     Overview of all startup applications
                 </p>
             </div>
@@ -115,18 +109,21 @@ export default function AdminDashboardPage() {
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                    gap: '20px',
-                    marginBottom: '40px',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1px',
+                    marginBottom: '48px',
+                    background: '#111',
+                    border: '1px solid #111',
+                    borderRadius: '10px',
+                    overflow: 'hidden',
                 }}
             >
                 {statCards.map((card, i) => (
                     <div
                         key={i}
-                        className="glass-card-subtle"
                         style={{
-                            padding: '24px',
-                            animationDelay: `${i * 0.1}s`,
+                            padding: '28px 24px',
+                            background: '#0a0a0a',
                         }}
                     >
                         <div
@@ -139,35 +136,25 @@ export default function AdminDashboardPage() {
                         >
                             <span
                                 style={{
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.65rem',
                                     fontWeight: 600,
                                     textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    color: 'var(--foreground-dimmed)',
+                                    letterSpacing: '0.1em',
+                                    color: '#444',
                                 }}
                             >
                                 {card.label}
                             </span>
-                            <div
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: 'var(--radius-md)',
-                                    background: card.bg,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: card.color,
-                                }}
-                            >
+                            <div style={{ color: '#333' }}>
                                 {card.icon}
                             </div>
                         </div>
                         <div
                             style={{
-                                fontSize: '2rem',
+                                fontSize: '2.2rem',
                                 fontWeight: 700,
-                                color: card.color,
+                                color: '#fff',
+                                letterSpacing: '-0.02em',
                             }}
                         >
                             {card.value}
@@ -178,19 +165,24 @@ export default function AdminDashboardPage() {
 
             {/* Recent Submissions */}
             <div
-                className="glass-card-subtle"
-                style={{ padding: '24px', overflow: 'hidden' }}
+                style={{
+                    background: '#0a0a0a',
+                    border: '1px solid #111',
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                }}
             >
                 <div
                     style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginBottom: '20px',
+                        padding: '20px 24px',
+                        borderBottom: '1px solid #111',
                     }}
                 >
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                        Recent Submissions
+                    <h2 style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#999' }}>
+                        RECENT SUBMISSIONS
                     </h2>
                     <Link
                         href="/admin/submissions"
@@ -198,13 +190,15 @@ export default function AdminDashboardPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            fontSize: '0.85rem',
-                            color: 'var(--brand-primary-light)',
+                            fontSize: '0.7rem',
+                            color: '#555',
                             textDecoration: 'none',
                             fontWeight: 500,
+                            letterSpacing: '0.05em',
+                            transition: 'color 0.2s',
                         }}
                     >
-                        View All <ArrowRight size={14} />
+                        VIEW ALL <ArrowRight size={12} />
                     </Link>
                 </div>
 
@@ -212,8 +206,9 @@ export default function AdminDashboardPage() {
                     <div
                         style={{
                             textAlign: 'center',
-                            padding: '40px',
-                            color: 'var(--foreground-dimmed)',
+                            padding: '48px',
+                            color: '#333',
+                            fontSize: '0.85rem',
                         }}
                     >
                         No submissions yet
@@ -239,7 +234,7 @@ export default function AdminDashboardPage() {
                                                 href={`/admin/submissions/${startup.id}`}
                                                 style={{
                                                     textDecoration: 'none',
-                                                    color: 'var(--foreground)',
+                                                    color: '#fff',
                                                     fontWeight: 500,
                                                 }}
                                             >
@@ -252,8 +247,8 @@ export default function AdminDashboardPage() {
                                         <td>
                                             <span
                                                 className={`badge ${startup.status === 'Selected'
-                                                        ? 'badge-selected'
-                                                        : 'badge-pending'
+                                                    ? 'badge-selected'
+                                                    : 'badge-pending'
                                                     }`}
                                             >
                                                 {startup.status}

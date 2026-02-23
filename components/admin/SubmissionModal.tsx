@@ -15,8 +15,6 @@ import {
     Telescope,
     Rocket,
     ExternalLink,
-    Mail,
-    Phone,
     MapPin,
     Calendar,
     Globe,
@@ -47,10 +45,10 @@ export default function SubmissionModal({
     if (!isOpen) return null;
 
     const Section = ({ title, icon: Icon, children }: { title: string, icon: any, children: React.ReactNode }) => (
-        <div style={{ marginBottom: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-                <Icon size={20} style={{ color: 'var(--brand-primary-light)' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--foreground)' }}>{title}</h3>
+        <div style={{ marginBottom: '36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', borderBottom: '1px solid #111', paddingBottom: '10px' }}>
+                <Icon size={16} style={{ color: '#555' }} />
+                <h3 style={{ fontSize: '0.7rem', fontWeight: 600, color: '#999', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{title}</h3>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                 {children}
@@ -60,13 +58,13 @@ export default function SubmissionModal({
 
     const DetailItem = ({ label, value, fullWidth = false }: { label: string, value: any, fullWidth?: boolean }) => {
         if (value === null || value === undefined || value === '') return null;
-        
+
         return (
             <div style={{ gridColumn: fullWidth ? '1 / -1' : 'auto' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--foreground-dimmed)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', fontSize: '0.65rem', color: '#444', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     {label}
                 </label>
-                <div style={{ fontSize: '0.95rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.6 }}>
                     {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value}
                 </div>
             </div>
@@ -76,11 +74,11 @@ export default function SubmissionModal({
     const SocialLink = ({ icon: Icon, url, label }: { icon: any, url: string | null, label: string }) => {
         if (!url) return null;
         return (
-            <a 
-                href={url.startsWith('http') ? url : `https://${url}`} 
-                target="_blank" 
+            <a
+                href={url.startsWith('http') ? url : `https://${url}`}
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--brand-primary-light)', textDecoration: 'none', fontSize: '0.85rem' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#999', textDecoration: 'none', fontSize: '0.8rem', transition: 'color 0.2s' }}
             >
                 <Icon size={14} />
                 {label}
@@ -89,14 +87,14 @@ export default function SubmissionModal({
     };
 
     return (
-        <div 
+        <div
             style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
                 backdropFilter: 'blur(4px)',
                 zIndex: 1000,
                 display: 'flex',
@@ -106,74 +104,84 @@ export default function SubmissionModal({
             }}
             onClick={onClose}
         >
-            <div 
+            <div
                 style={{
-                    backgroundColor: 'var(--background-card)',
+                    backgroundColor: '#0a0a0a',
                     width: '100%',
                     maxWidth: '1000px',
                     maxHeight: '90vh',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    border: '1px solid #111',
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
                     position: 'relative',
-                    boxShadow: 'var(--shadow-lg)',
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: 'var(--background-elevated)' }}>
+                <div style={{ padding: '24px 32px', borderBottom: '1px solid #111', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#050505' }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                            <h2 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em' }}>{startup.startup_name}</h2>
-                            <span className={`badge ${startup.status === 'Selected' ? 'badge-selected' : 'badge-pending'}`} style={{ fontSize: '0.7rem' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>{startup.startup_name}</h2>
+                            <span className={`badge ${startup.status === 'Selected' ? 'badge-selected' : 'badge-pending'}`} style={{ fontSize: '0.65rem' }}>
                                 {startup.status}
                             </span>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: 'var(--foreground-muted)', fontSize: '0.9rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={16} /> {startup.founder_names}</div>
-                            {startup.city && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> {startup.city}, {startup.country}</div>}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={16} /> {new Date(startup.created_at).toLocaleDateString()}</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#555', fontSize: '0.8rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} /> {startup.founder_names}</div>
+                            {startup.city && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {startup.city}, {startup.country}</div>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {new Date(startup.created_at).toLocaleDateString()}</div>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button 
+                        <button
                             onClick={() => onToggleStatus(startup.id, startup.status)}
                             disabled={isToggling}
-                            className={startup.status === 'Selected' ? 'btn-secondary' : 'btn-primary'}
-                            style={{ padding: '10px 24px', fontSize: '0.9rem' }}
+                            style={{
+                                padding: '9px 20px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                letterSpacing: '0.05em',
+                                borderRadius: '8px',
+                                cursor: isToggling ? 'wait' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s',
+                                border: startup.status === 'Selected' ? '1px solid #222' : 'none',
+                                background: startup.status === 'Selected' ? 'transparent' : '#fff',
+                                color: startup.status === 'Selected' ? '#999' : '#000',
+                            }}
                         >
                             {isToggling ? (
-                                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
                             ) : startup.status === 'Selected' ? (
-                                <> <AlertCircle size={18} /> Mark as Pending </>
+                                <> <AlertCircle size={14} /> MARK PENDING </>
                             ) : (
-                                <> <CheckCircle2 size={18} /> Select Startup </>
+                                <> <CheckCircle2 size={14} /> SELECT </>
                             )}
                         </button>
-                        <button 
+                        <button
                             onClick={onClose}
-                            style={{ background: 'none', border: 'none', color: 'var(--foreground-dimmed)', cursor: 'pointer', padding: '4px' }}
+                            style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: '4px' }}
                         >
-                            <X size={28} />
+                            <X size={24} />
                         </button>
                     </div>
                 </div>
 
                 {/* Content */}
                 <div style={{ padding: '32px', overflowY: 'auto', flex: 1 }}>
-                    {/* ... (render items) ... */}
-                    {/* Basic Info & Socials */}
                     <Section title="Basic Information" icon={Building2}>
                         <DetailItem label="Startup Name" value={startup.startup_name} />
-                        <DetailItem label="Founders" value={startup.founder_names} />
+                        <DetailItem label="Founder Name(s)" value={startup.founder_names} />
                         <DetailItem label="Email" value={startup.email} />
                         <DetailItem label="Contact" value={startup.contact_number} />
                         <DetailItem label="Designation" value={startup.designation} />
                         <DetailItem label="City" value={startup.city} />
                         <DetailItem label="Country" value={startup.country} />
-                        <DetailItem label="Incorporation Year" value={startup.year_of_incorporation} />
+                        <DetailItem label="Year of Incorporation" value={startup.year_of_incorporation} />
                         <DetailItem label="Legal Structure" value={startup.legal_structure} />
                         <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '10px' }}>
                             <SocialLink icon={Globe} url={startup.website} label="Website" />
@@ -184,7 +192,6 @@ export default function SubmissionModal({
                         </div>
                     </Section>
 
-                    {/* Founder Profile */}
                     <Section title="Founder Profile" icon={User}>
                         <DetailItem label="Education" value={startup.education} fullWidth />
                         <DetailItem label="Total Experience" value={startup.total_experience_years ? `${startup.total_experience_years} years` : null} />
@@ -193,7 +200,6 @@ export default function SubmissionModal({
                         <DetailItem label="Why Right Person?" value={startup.why_right_person} fullWidth />
                     </Section>
 
-                    {/* Concept */}
                     <Section title="Startup Concept" icon={Lightbulb}>
                         <DetailItem label="Five Word Description" value={startup.five_word_description} fullWidth />
                         <DetailItem label="Elevator Pitch" value={startup.elevator_pitch} fullWidth />
@@ -204,8 +210,7 @@ export default function SubmissionModal({
                         <DetailItem label="Current Stage" value={startup.current_stage} />
                     </Section>
 
-                    {/* Financials */}
-                    <Section title="Financials & Unit Economics" icon={IndianRupee}>
+                    <Section title="Product / Service Details" icon={IndianRupee}>
                         <DetailItem label="Products/Services" value={startup.products_services} fullWidth />
                         <DetailItem label="Pricing" value={startup.pricing} fullWidth />
                         <DetailItem label="Avg Order Value" value={startup.average_order_value} />
@@ -218,8 +223,7 @@ export default function SubmissionModal({
                         <DetailItem label="Contribution Margin" value={startup.contribution_margin} />
                     </Section>
 
-                    {/* Traction */}
-                    <Section title="Traction" icon={TrendingUp}>
+                    <Section title="Traction & Revenue" icon={TrendingUp}>
                         <DetailItem label="Generating Revenue?" value={startup.is_generating_revenue} />
                         <DetailItem label="Monthly Revenue" value={startup.current_monthly_revenue ? `₹${startup.current_monthly_revenue.toLocaleString()}` : null} />
                         <DetailItem label="Monthly Growth" value={startup.monthly_growth_rate ? `${startup.monthly_growth_rate}%` : null} />
@@ -231,7 +235,6 @@ export default function SubmissionModal({
                         <DetailItem label="Partnerships" value={startup.partnerships} fullWidth />
                     </Section>
 
-                    {/* Business Model */}
                     <Section title="Business Model" icon={RefreshCw}>
                         <DetailItem label="Revenue Model" value={startup.revenue_model} fullWidth />
                         <DetailItem label="Acquisition Channels" value={startup.acquisition_channels} fullWidth />
@@ -240,8 +243,7 @@ export default function SubmissionModal({
                         <DetailItem label="LTV/CAC Ratio" value={startup.ltv_cac_ratio} />
                     </Section>
 
-                    {/* Fundraising */}
-                    <Section title="Fundraising" icon={Target}>
+                    <Section title="Investment & Fundraising" icon={Target}>
                         <DetailItem label="Raised Before?" value={startup.raised_before} />
                         <DetailItem label="Previous Funding" value={startup.previous_funding} fullWidth />
                         <DetailItem label="Investment Seeking" value={startup.investment_seeking ? `₹${startup.investment_seeking.toLocaleString()}` : null} />
@@ -252,43 +254,72 @@ export default function SubmissionModal({
                         <DetailItem label="Fund Utilization" value={startup.fund_utilization} fullWidth />
                     </Section>
 
-                    {/* Team */}
                     <Section title="Team" icon={Users}>
                         <DetailItem label="Core Team" value={startup.core_team} fullWidth />
                         <DetailItem label="Planned Hires" value={startup.planned_hires} fullWidth />
                         <DetailItem label="Advisory Board" value={startup.advisory_board} fullWidth />
                     </Section>
 
-                    {/* Vision */}
-                    <Section title="Vision" icon={Telescope}>
+                    <Section title="Scalability & Vision" icon={Telescope}>
                         <DetailItem label="3 Year Revenue Projection" value={startup.revenue_projection_3y} fullWidth />
                         <DetailItem label="5 Year Vision" value={startup.vision_5y} fullWidth />
                         <DetailItem label="Exit Strategy" value={startup.exit_strategy} fullWidth />
                     </Section>
 
-                    {/* Pitch Readiness */}
-                    <Section title="Pitch Readiness" icon={Rocket}>
+                    <Section title="Readiness for Pitch Studio" icon={Rocket}>
                         <DetailItem label="Prepared for Q&A?" value={startup.prepared_for_qa} />
                         <DetailItem label="Why should we shortlist you?" value={startup.why_shortlist} fullWidth />
-                        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '10px' }}>
+                        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '10px' }}>
                             {startup.pitch_deck_link && (
-                                <a href={startup.pitch_deck_link} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
-                                    <ExternalLink size={14} /> View Pitch Deck
+                                <a
+                                    href={startup.pitch_deck_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 16px',
+                                        background: 'transparent',
+                                        border: '1px solid #222',
+                                        borderRadius: '6px',
+                                        color: '#999',
+                                        fontSize: '0.75rem',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    <ExternalLink size={12} /> View Pitch Deck
                                 </a>
                             )}
                             {startup.financial_projection_link && (
-                                <a href={startup.financial_projection_link} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm">
-                                    <ExternalLink size={14} /> View Financial Projections
+                                <a
+                                    href={startup.financial_projection_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 16px',
+                                        background: 'transparent',
+                                        border: '1px solid #222',
+                                        borderRadius: '6px',
+                                        color: '#999',
+                                        fontSize: '0.75rem',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    <ExternalLink size={12} /> View Financial Projections
                                 </a>
                             )}
                         </div>
                     </Section>
                 </div>
 
-                {/* Footer Info */}
-                <div style={{ padding: '16px 32px', borderTop: '1px solid var(--border-color)', background: 'var(--background-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--foreground-dimmed)', fontSize: '0.8rem' }}>
-                    <div>Submission ID: {startup.id}</div>
-                    <div>Applied on: {new Date(startup.created_at).toLocaleString()}</div>
+                {/* Footer */}
+                <div style={{ padding: '14px 32px', borderTop: '1px solid #111', background: '#050505', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#333', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                    <div>ID: {startup.id}</div>
+                    <div>Applied: {new Date(startup.created_at).toLocaleString()}</div>
                 </div>
             </div>
         </div>

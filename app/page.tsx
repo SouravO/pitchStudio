@@ -137,8 +137,10 @@ export default function PitchStudioNoir() {
         background: 'rgba(0,0,0,0.5)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Rocket size={24} />
-          <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>PITCH_STUDIO</span>
+          {/* <Rocket size={24} /> */}
+          <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
+            <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
+          </span>
         </div>
         <Link href="/admin/login" style={{
           fontSize: '0.75rem',

@@ -77,10 +77,10 @@ export default function StartupDetailPage() {
                 }}
             >
                 <Loader2
-                    size={32}
+                    size={24}
                     style={{
                         animation: 'spin 1s linear infinite',
-                        color: 'var(--brand-primary)',
+                        color: '#fff',
                     }}
                 />
             </div>
@@ -119,7 +119,7 @@ export default function StartupDetailPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                        color: 'var(--brand-primary-light)',
+                        color: '#999',
                         textDecoration: 'none',
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -140,13 +140,13 @@ export default function StartupDetailPage() {
                     display: 'flex',
                     gap: '12px',
                     padding: '10px 0',
-                    borderBottom: '1px solid var(--border-color)',
+                    borderBottom: '1px solid #111',
                 }}
             >
                 <span
                     style={{
-                        fontSize: '0.85rem',
-                        color: 'var(--foreground-dimmed)',
+                        fontSize: '0.8rem',
+                        color: '#555',
                         minWidth: '180px',
                         flexShrink: 0,
                     }}
@@ -156,7 +156,7 @@ export default function StartupDetailPage() {
                 <span
                     style={{
                         fontSize: '0.9rem',
-                        color: 'var(--foreground-muted)',
+                        color: '#ccc',
                         wordBreak: 'break-word',
                     }}
                 >
@@ -176,17 +176,19 @@ export default function StartupDetailPage() {
         children: React.ReactNode;
     }) => (
         <div
-            className="glass-card-subtle"
-            style={{ padding: '24px', marginBottom: '16px' }}
+            style={{ padding: '24px', marginBottom: '12px', background: '#0a0a0a', border: '1px solid #111', borderRadius: '10px' }}
         >
             <h3
                 style={{
-                    fontSize: '1rem',
+                    fontSize: '0.7rem',
                     fontWeight: 600,
                     marginBottom: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase' as const,
+                    color: '#999',
                 }}
             >
                 <span>{icon}</span>
@@ -215,7 +217,7 @@ export default function StartupDetailPage() {
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--foreground-muted)',
+                            color: '#555',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -230,10 +232,11 @@ export default function StartupDetailPage() {
                     </button>
                     <h1
                         style={{
-                            fontSize: '1.8rem',
+                            fontSize: '1.4rem',
                             fontWeight: 700,
                             letterSpacing: '-0.02em',
                             marginBottom: '8px',
+                            color: '#fff',
                         }}
                     >
                         {startup.startup_name}
@@ -244,8 +247,8 @@ export default function StartupDetailPage() {
                             gap: '16px',
                             alignItems: 'center',
                             flexWrap: 'wrap',
-                            fontSize: '0.9rem',
-                            color: 'var(--foreground-muted)',
+                            fontSize: '0.8rem',
+                            color: '#555',
                         }}
                     >
                         {startup.city && (
@@ -408,8 +411,9 @@ export default function StartupDetailPage() {
                 style={{
                     textAlign: 'center',
                     padding: '24px',
-                    color: 'var(--foreground-dimmed)',
-                    fontSize: '0.8rem',
+                    color: '#333',
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.05em',
                 }}
             >
                 Application submitted on{' '}

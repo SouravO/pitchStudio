@@ -4,20 +4,20 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-    Rocket,
     LayoutDashboard,
     List,
     Star,
     LogOut,
     Menu,
     X,
+    Command,
 } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 
 const navItems = [
-    { href: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { href: '/admin/submissions', label: 'All Submissions', icon: <List size={18} /> },
-    { href: '/admin/selected', label: 'Selected', icon: <Star size={18} /> },
+    { href: '/admin', label: 'DASHBOARD', icon: <LayoutDashboard size={16} /> },
+    { href: '/admin/submissions', label: 'SUBMISSIONS', icon: <List size={16} /> },
+    { href: '/admin/selected', label: 'SELECTED', icon: <Star size={16} /> },
 ];
 
 export default function AdminLayout({
@@ -41,13 +41,12 @@ export default function AdminLayout({
         router.refresh();
     };
 
-    // Don't show sidebar on login page
     if (isLoginPage) {
         return <>{children}</>;
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: '#000' }}>
             {/* Mobile overlay */}
             {sidebarOpen && (
                 <div
@@ -55,20 +54,18 @@ export default function AdminLayout({
                     style={{
                         position: 'fixed',
                         inset: 0,
-                        background: 'rgba(0,0,0,0.5)',
+                        background: 'rgba(0,0,0,0.8)',
                         zIndex: 40,
-                        display: 'none',
                     }}
-                    className="mobile-overlay"
                 />
             )}
 
             {/* Sidebar */}
             <aside
                 style={{
-                    width: '260px',
-                    background: 'var(--background-card)',
-                    borderRight: '1px solid var(--border-color)',
+                    width: '220px',
+                    background: '#000',
+                    borderRight: '1px solid #111',
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'fixed',
@@ -82,8 +79,8 @@ export default function AdminLayout({
                 {/* Logo */}
                 <div
                     style={{
-                        padding: '24px 20px',
-                        borderBottom: '1px solid var(--border-color)',
+                        padding: '28px 20px',
+                        borderBottom: '1px solid #111',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -94,17 +91,21 @@ export default function AdminLayout({
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '10px',
+                            gap: '8px',
                             textDecoration: 'none',
-                            color: 'var(--foreground)',
+                            color: '#fff',
                         }}
                     >
-                        <Rocket size={24} style={{ color: 'var(--brand-primary-light)' }} />
+                        <Command size={18} style={{ color: '#fff' }} />
                         <span
-                            className="gradient-text"
-                            style={{ fontSize: '1.15rem', fontWeight: 700 }}
+                            style={{
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.15em',
+                                textTransform: 'uppercase',
+                            }}
                         >
-                            Pitch Studio
+                           <img src="/assets/logo.png" alt="Logo" />
                         </span>
                     </Link>
                     <button
@@ -112,30 +113,30 @@ export default function AdminLayout({
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--foreground-muted)',
+                            color: '#555',
                             cursor: 'pointer',
                             display: 'none',
                         }}
                         className="mobile-close"
                     >
-                        <X size={20} />
+                        <X size={18} />
                     </button>
                 </div>
 
                 {/* Nav */}
-                <nav style={{ flex: 1, padding: '16px 12px' }}>
+                <nav style={{ flex: 1, padding: '20px 12px' }}>
                     <div
                         style={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.6rem',
                             fontWeight: 600,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.1em',
-                            color: 'var(--foreground-dimmed)',
-                            padding: '8px 12px',
-                            marginBottom: '4px',
+                            letterSpacing: '0.15em',
+                            color: '#333',
+                            padding: '4px 12px',
+                            marginBottom: '8px',
                         }}
                     >
-                        Navigation
+                        NAVIGATION
                     </div>
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
@@ -149,16 +150,13 @@ export default function AdminLayout({
                                     alignItems: 'center',
                                     gap: '10px',
                                     padding: '10px 12px',
-                                    borderRadius: 'var(--radius-md)',
+                                    borderRadius: '6px',
                                     textDecoration: 'none',
-                                    fontSize: '0.9rem',
+                                    fontSize: '0.75rem',
                                     fontWeight: isActive ? 600 : 400,
-                                    color: isActive
-                                        ? 'var(--brand-primary-light)'
-                                        : 'var(--foreground-muted)',
-                                    background: isActive
-                                        ? 'rgba(99, 102, 241, 0.1)'
-                                        : 'transparent',
+                                    letterSpacing: '0.08em',
+                                    color: isActive ? '#fff' : '#555',
+                                    background: isActive ? '#111' : 'transparent',
                                     marginBottom: '2px',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -174,7 +172,7 @@ export default function AdminLayout({
                 <div
                     style={{
                         padding: '16px 12px',
-                        borderTop: '1px solid var(--border-color)',
+                        borderTop: '1px solid #111',
                     }}
                 >
                     <button
@@ -184,33 +182,34 @@ export default function AdminLayout({
                             alignItems: 'center',
                             gap: '10px',
                             padding: '10px 12px',
-                            borderRadius: 'var(--radius-md)',
+                            borderRadius: '6px',
                             width: '100%',
                             background: 'none',
                             border: 'none',
-                            color: 'var(--foreground-muted)',
+                            color: '#555',
                             cursor: 'pointer',
-                            fontSize: '0.9rem',
+                            fontSize: '0.75rem',
+                            letterSpacing: '0.08em',
                             transition: 'all 0.2s ease',
                         }}
                     >
-                        <LogOut size={18} />
-                        Logout
+                        <LogOut size={16} />
+                        LOGOUT
                     </button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <div style={{ flex: 1, marginLeft: '260px' }}>
-                {/* Top bar for mobile */}
+            <div style={{ flex: 1, marginLeft: '220px' }}>
+                {/* Top bar */}
                 <header
                     style={{
-                        padding: '16px 24px',
-                        borderBottom: '1px solid var(--border-color)',
+                        padding: '14px 28px',
+                        borderBottom: '1px solid #111',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        background: 'var(--background-card)',
+                        background: '#000',
                     }}
                 >
                     <button
@@ -218,28 +217,29 @@ export default function AdminLayout({
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--foreground-muted)',
+                            color: '#555',
                             cursor: 'pointer',
                             display: 'none',
                         }}
                         className="mobile-menu"
                     >
-                        <Menu size={22} />
+                        <Menu size={20} />
                     </button>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--foreground-dimmed)' }}>
-                        Admin Panel
+                    <div style={{ fontSize: '0.7rem', color: '#333', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                        ADMIN PANEL
                     </div>
                     <div
                         style={{
-                            width: '32px',
-                            height: '32px',
+                            width: '28px',
+                            height: '28px',
                             borderRadius: '50%',
-                            background: 'var(--gradient-brand)',
+                            border: '1px solid #222',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '0.8rem',
+                            fontSize: '0.7rem',
                             fontWeight: 600,
+                            color: '#fff',
                         }}
                     >
                         A
