@@ -89,7 +89,7 @@ export default function PitchStudioNoir() {
             style={{
               position: 'fixed',
               inset: 0,
-              background: '#fff',
+              background: '#000',
               zIndex: 2000,
               display: 'flex',
               alignItems: 'center',
@@ -106,7 +106,7 @@ export default function PitchStudioNoir() {
                 <Command size={40} />
               </motion.div>
               <div style={{ marginTop: '20px', fontWeight: 700, letterSpacing: '2px' }}>
-                INITIALIZING_VOID_CORE...
+              <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
               </div>
             </div>
           </motion.div>
