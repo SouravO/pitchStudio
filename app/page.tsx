@@ -184,37 +184,7 @@ export default function PitchStudioNoir() {
         </div>
       </section>
 
-      {/* 5. STATS SECTION */}
-      <section style={{ padding: '100px 60px', position: 'relative', zIndex: 1 }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '2px',
-          background: '#222'
-        }}>
-          {[
-            { n: '500+', l: 'STARTUPS', i: <Cpu /> },
-            { n: '120+', l: 'INVESTORS', i: <Activity /> },
-            { n: '85%', l: 'MATCH RATE', i: <Hash /> },
-            { n: '24H', l: 'LATENCY', i: <Activity /> }
-          ].map((s, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              style={{ background: '#000', padding: '60px 40px', textAlign: 'center' }}
-            >
-              <div style={{ marginBottom: '20px', opacity: 0.3, display: 'flex', justifyContent: 'center' }}>{s.i}</div>
-              <div style={{ fontSize: '3.5rem', fontWeight: 700 }}>{s.n}</div>
-              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '10px', fontWeight: 600, letterSpacing: '1px' }}>{s.l}</div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+    
 
       {/* 6. HOW IT WORKS - UPDATED VISIBILITY */}
       <section id="how" style={{
