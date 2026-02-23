@@ -132,11 +132,11 @@ export default function PitchStudioNoir() {
         zIndex: 100,
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '30px 60px',
+        padding: '30px 40px',
         backdropFilter: 'blur(10px)',
         background: 'rgba(0,0,0,0.5)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'start',  }}>
           {/* <Rocket size={24} /> */}
           <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
             <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
