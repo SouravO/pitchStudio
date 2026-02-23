@@ -366,7 +366,7 @@ export default function StartupVoidForm() {
                 .film-grain { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.05; background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Stop_Sign_Ind_5.png'); }
                 .noir-layout { display: flex; height: 100%; position: relative; z-index: 10; }
                 .form-column { flex: 1; padding: 40px 60px; display: flex; flex-direction: column; background: #000; border-right: 1px solid #111; }
-                .form-scroll-wrapper { flex: 1; overflow-y: auto; display: flex; align-items: center; padding-right: 15px; }
+                .form-scroll-wrapper { flex: 1; overflow-y: auto; display: flex; align-items: flex-start; padding: 20px 15px 20px 0; }
                 .form-scroll-wrapper::-webkit-scrollbar { width: 2px; }
                 .form-scroll-wrapper::-webkit-scrollbar-thumb { background: #222; }
                 .noir-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; letter-spacing: 2px; color: #444; margin-bottom: 30px; }
