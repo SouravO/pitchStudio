@@ -59,13 +59,39 @@ export default function StartupVoidForm() {
         pitch_deck_link: '', financial_projection_link: '', prepared_for_qa: null, why_shortlist: '',
     });
 
+    const countWords = (text: string) => text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         let parsedValue = type === 'number' ? (value === '' ? null : Number(value)) : value;
         setFormData(prev => ({ ...prev, [name]: parsedValue }));
     };
 
+    const handleWordLimitChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, maxWords: number) => {
+        const { name, value } = e.target;
+        const words = value.trim().split(/\s+/);
+        if (value.trim() !== '' && words.length > maxWords) return;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
     const handleBool = (name: string, val: boolean) => setFormData(prev => ({ ...prev, [name]: val }));
+
+    const [fundBreakdown, setFundBreakdown] = useState({
+        marketing: '', product_development: '', hiring: '', operations: '', technology: '', others: '',
+    });
+
+    const handleFundChange = (category: string, value: string) => {
+        const newBreakdown = { ...fundBreakdown, [category]: value };
+        setFundBreakdown(newBreakdown);
+        const formatted = Object.entries(newBreakdown)
+            .filter(([, v]) => v !== '')
+            .map(([k, v]) => {
+                const label = k.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                return `${label}: ${v}%`;
+            })
+            .join(', ');
+        setFormData(prev => ({ ...prev, fund_utilization: formatted }));
+    };
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
@@ -89,10 +115,10 @@ export default function StartupVoidForm() {
             <div className="film-grain" />
             <main className="noir-layout">
                 <section className="form-column">
-                    <header className="noir-header">
+                    {/* <header className="noir-header">
                         <div className="noir-tag"><Command size={14} /><span>VOID_SESSION_2026</span></div>
                         <div className="id-code"><Hash size={12} /><span>PHASE_0{step}_STABLE</span></div>
-                    </header>
+                    </header> */}
 
                     <div className="form-scroll-wrapper">
                         <AnimatePresence mode="wait">
@@ -103,16 +129,16 @@ export default function StartupVoidForm() {
                                         <h1 className="noir-title">BASIC<br />INFO_</h1>
                                         <input name="startup_name" placeholder="STARTUP NAME *" value={formData.startup_name} onChange={handleChange} required />
                                         <input name="founder_names" placeholder="FOUNDER NAME(S) *" value={formData.founder_names} onChange={handleChange} required />
-                                        <input name="designation" placeholder="DESIGNATION" value={formData.designation} onChange={handleChange} />
+                                        <input name="designation" placeholder="DESIGNATION (CEO / CO-FOUNDER / ETC.)" value={formData.designation} onChange={handleChange} />
                                         <div className="grid-2">
-                                            <input name="email" type="email" placeholder="EMAIL *" value={formData.email} onChange={handleChange} required />
+                                            <input name="email" type="email" placeholder="EMAIL ID *" value={formData.email} onChange={handleChange} required />
                                             <input name="contact_number" placeholder="CONTACT NUMBER" value={formData.contact_number} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
                                             <input name="city" placeholder="CITY" value={formData.city} onChange={handleChange} />
                                             <input name="country" placeholder="COUNTRY" value={formData.country} onChange={handleChange} />
                                         </div>
-                                        <input name="website" placeholder="WEBSITE URL" value={formData.website} onChange={handleChange} />
+                                        <input name="website" placeholder="WEBSITE (IF ANY)" value={formData.website} onChange={handleChange} />
                                         <div className="grid-2">
                                             <input name="instagram" placeholder="INSTAGRAM" value={formData.instagram} onChange={handleChange} />
                                             <input name="linkedin" placeholder="LINKEDIN" value={formData.linkedin} onChange={handleChange} />
@@ -129,6 +155,7 @@ export default function StartupVoidForm() {
                                                 <option value="LLP">LLP</option>
                                                 <option value="Partnership">PARTNERSHIP</option>
                                                 <option value="Sole Proprietorship">SOLE PROPRIETORSHIP</option>
+                                                <option value="Other">Other</option>
                                             </select>
                                         </div>
                                     </div>
@@ -137,120 +164,138 @@ export default function StartupVoidForm() {
                                 {step === 2 && (
                                     <div className="input-group">
                                         <h1 className="noir-title">FOUNDER<br />PROFILE_</h1>
-                                        <input name="education" placeholder="HIGHEST EDUCATION" value={formData.education} onChange={handleChange} />
-                                        <input name="total_experience_years" type="number" placeholder="TOTAL EXPERIENCE (YEARS)" value={formData.total_experience_years || ''} onChange={handleChange} />
-                                        <textarea name="industry_experience" placeholder="INDUSTRY EXPERIENCE" value={formData.industry_experience} onChange={handleChange} />
-                                        <textarea name="previous_startup_experience" placeholder="PREVIOUS STARTUP EXPERIENCE" value={formData.previous_startup_experience} onChange={handleChange} />
-                                        <textarea name="why_right_person" placeholder="WHY ARE YOU THE RIGHT PERSON?" value={formData.why_right_person} onChange={handleChange} />
+                                        <input name="education" placeholder="FOUNDER’S EDUCATIONAL BACKGROUND" value={formData.education} onChange={handleChange} required />
+                                        <input name="total_experience_years" type="number" placeholder="TOTAL YEARS OF EXPERIENCE" value={formData.total_experience_years || ''} onChange={handleChange} />
+                                        <textarea name="industry_experience" placeholder="INDUSTRY EXPERIENCE (RELEVANT TO STARTUP)" value={formData.industry_experience} onChange={handleChange} />
+                                        <textarea name="previous_startup_experience" placeholder="PREVIOUS STARTUP EXPERIENCE (IF ANY)" value={formData.previous_startup_experience} onChange={handleChange} />
+                                        <textarea name="why_right_person" placeholder="WHY ARE YOU THE RIGHT PERSON TO SOLVE THIS PROBLEM? (MAX 150 WORDS)" value={formData.why_right_person} onChange={(e) => handleWordLimitChange(e, 150)} />
+                                        <div style={{ fontSize: '0.65rem', color: countWords(formData.why_right_person) >= 150 ? '#ff4444' : '#444', textAlign: 'right', marginTop: '-5px' }}>{countWords(formData.why_right_person)} / 150 words</div>
                                     </div>
                                 )}
 
                                 {step === 3 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">CONCEPT_</h1>
-                                        <input name="five_word_description" placeholder="DESCRIBE IN 5 WORDS" value={formData.five_word_description} onChange={handleChange} />
-                                        <textarea name="elevator_pitch" placeholder="ELEVATOR PITCH (30s)" value={formData.elevator_pitch} onChange={handleChange} />
-                                        <textarea name="problem_statement" placeholder="PROBLEM STATEMENT" value={formData.problem_statement} onChange={handleChange} />
-                                        <input name="target_customer" placeholder="TARGET CUSTOMER" value={formData.target_customer} onChange={handleChange} />
-                                        <textarea name="differentiation" placeholder="WHAT DIFFERENTIATES YOU?" value={formData.differentiation} onChange={handleChange} />
-                                        <input name="market_size" placeholder="MARKET SIZE (TAM/SAM/SOM)" value={formData.market_size} onChange={handleChange} />
+                                        <h1 className="noir-title">STARTUP<br />CONCEPT_</h1>
+                                        <input name="five_word_description" placeholder="DESCRIBE YOUR STARTUP IN 5 WORDS ONLY" value={formData.five_word_description} onChange={(e) => handleWordLimitChange(e, 5)} />
+                                        <div style={{ fontSize: '0.65rem', color: countWords(formData.five_word_description) >= 5 ? '#ff4444' : '#444', textAlign: 'right', marginTop: '-5px' }}>{countWords(formData.five_word_description)} / 5 words</div>
+                                        <textarea name="elevator_pitch" placeholder="ONE-LINE ELEVATOR PITCH (MAX 20 WORDS)" value={formData.elevator_pitch} onChange={(e) => handleWordLimitChange(e, 20)} />
+                                        <div style={{ fontSize: '0.65rem', color: countWords(formData.elevator_pitch) >= 20 ? '#ff4444' : '#444', textAlign: 'right', marginTop: '-5px' }}>{countWords(formData.elevator_pitch)} / 20 words</div>
+                                        <textarea name="problem_statement" placeholder="WHAT PROBLEM ARE YOU SOLVING?" value={formData.problem_statement} onChange={handleChange} />
+                                        <input name="target_customer" placeholder="WHO IS YOUR TARGET CUSTOMER?" value={formData.target_customer} onChange={handleChange} />
+                                        <textarea name="differentiation" placeholder="WHAT IS YOUR UNIQUE DIFFERENTIATION?" value={formData.differentiation} onChange={handleChange} />
+                                        <input name="market_size" placeholder="MARKET SIZE (TAM / SAM / SOM IF KNOWN)" value={formData.market_size} onChange={handleChange} />
                                         <select name="current_stage" value={formData.current_stage} onChange={handleChange} className="noir-select">
                                             <option value="">CURRENT STAGE</option>
-                                            <option value="Idea">IDEA STAGE</option>
+                                            <option value="Idea">IDEA</option>
+                                            <option value="Prototype">PROTOTYPE</option>
                                             <option value="MVP">MVP</option>
-                                            <option value="Early Traction">EARLY TRACTION</option>
-                                            <option value="Growth">GROWTH</option>
+                                            <option value="Revenue Generating">REVENUE GENERATING</option>
+                                            <option value="Scaling">SCALING</option>
                                         </select>
                                     </div>
                                 )}
 
                                 {step === 4 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">FINANCIALS_</h1>
-                                        <textarea name="products_services" placeholder="PRODUCTS / SERVICES OFFERED" value={formData.products_services} onChange={handleChange} />
+                                        <h1 className="noir-title">PRODUCT /<br />SERVICE_</h1>
+                                        <textarea name="products_services" placeholder="LIST YOUR PRODUCTS / SERVICES" value={formData.products_services} onChange={handleChange} />
                                         <div className="grid-2">
-                                            <input name="pricing" placeholder="PRICING MODEL" value={formData.pricing} onChange={handleChange} />
-                                            <input name="average_order_value" type="number" placeholder="AVG ORDER VALUE (₹)" value={formData.average_order_value || ''} onChange={handleChange} />
+                                            <input name="pricing" placeholder="PRICING OF EACH PRODUCT / SERVICE" value={formData.pricing} onChange={handleChange} />
+                                            <input name="average_order_value" type="number" placeholder="AVERAGE ORDER VALUE (AOV)" value={formData.average_order_value || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="monthly_sales_volume" type="number" placeholder="MONTHLY VOLUME" value={formData.monthly_sales_volume || ''} onChange={handleChange} />
+                                            <input name="monthly_sales_volume" type="number" placeholder="MONTHLY SALES VOLUME (UNITS)" value={formData.monthly_sales_volume || ''} onChange={handleChange} />
                                             <input name="gross_margin" type="number" placeholder="GROSS MARGIN %" value={formData.gross_margin || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="cost_of_production" type="number" placeholder="COST OF PRODUCTION (₹)" value={formData.cost_of_production || ''} onChange={handleChange} />
-                                            <input name="delivery_cost" type="number" placeholder="DELIVERY COST (₹)" value={formData.delivery_cost || ''} onChange={handleChange} />
+                                            <input name="net_profit_margin" type="number" placeholder="NET PROFIT MARGIN %" value={formData.net_profit_margin || ''} onChange={handleChange} />
+                                            <input name="cost_of_production" type="number" placeholder="COST OF PRODUCTION" value={formData.cost_of_production || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="marketing_cac" type="number" placeholder="MARKETING / CAC (₹)" value={formData.marketing_cac || ''} onChange={handleChange} />
-                                            <input name="net_profit_margin" type="number" placeholder="NET PROFIT %" value={formData.net_profit_margin || ''} onChange={handleChange} />
+                                            <input name="marketing_cac" type="number" placeholder="MARKETING COST PER ACQUISITION" value={formData.marketing_cac || ''} onChange={handleChange} />
+                                            <input name="delivery_cost" type="number" placeholder="DELIVERY / SERVICE COST" value={formData.delivery_cost || ''} onChange={handleChange} />
                                         </div>
-                                        <input name="contribution_margin" type="number" placeholder="CONTRIBUTION MARGIN (₹)" value={formData.contribution_margin || ''} onChange={handleChange} />
+                                        <input name="contribution_margin" type="number" placeholder="CONTRIBUTION MARGIN PER UNIT" value={formData.contribution_margin || ''} onChange={handleChange} />
                                     </div>
                                 )}
 
                                 {step === 5 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">TRACTION_</h1>
+                                        <h1 className="noir-title">TRACTION &<br />REVENUE_</h1>
                                         <div className="bool-toggle">
-                                            <span>GENERATING REVENUE?</span>
+                                            <span>ARE YOU GENERATING REVENUE?</span>
                                             <button className={formData.is_generating_revenue === true ? 'active' : ''} onClick={() => handleBool('is_generating_revenue', true)}>YES</button>
                                             <button className={formData.is_generating_revenue === false ? 'active' : ''} onClick={() => handleBool('is_generating_revenue', false)}>NO</button>
                                         </div>
                                         <div className="grid-2">
-                                            <input name="revenue_year1" type="number" placeholder="REV YEAR 1 (₹)" value={formData.revenue_year1 || ''} onChange={handleChange} />
-                                            <input name="revenue_year2" type="number" placeholder="REV YEAR 2 (₹)" value={formData.revenue_year2 || ''} onChange={handleChange} />
+                                            <input name="revenue_year1" type="number" placeholder="REVENUE YEAR 1" value={formData.revenue_year1 || ''} onChange={handleChange} />
+                                            <input name="revenue_year2" type="number" placeholder="REVENUE YEAR 2" value={formData.revenue_year2 || ''} onChange={handleChange} />
                                         </div>
-                                        <input name="revenue_year3" type="number" placeholder="REV YEAR 3 (₹)" value={formData.revenue_year3 || ''} onChange={handleChange} />
+                                        <input name="revenue_year3" type="number" placeholder="REVENUE YEAR 3" value={formData.revenue_year3 || ''} onChange={handleChange} />
                                         <div className="grid-2">
-                                            <input name="current_monthly_revenue" type="number" placeholder="MONTHLY REVENUE (₹)" value={formData.current_monthly_revenue || ''} onChange={handleChange} />
-                                            <input name="monthly_growth_rate" type="number" placeholder="GROWTH RATE %" value={formData.monthly_growth_rate || ''} onChange={handleChange} />
+                                            <input name="current_monthly_revenue" type="number" placeholder="CURRENT MONTHLY REVENUE" value={formData.current_monthly_revenue || ''} onChange={handleChange} />
+                                            <input name="monthly_growth_rate" type="number" placeholder="MONTHLY GROWTH RATE %" value={formData.monthly_growth_rate || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="retention_rate" type="number" placeholder="RETENTION %" value={formData.retention_rate || ''} onChange={handleChange} />
-                                            <input name="active_customers" type="number" placeholder="ACTIVE CUSTOMERS" value={formData.active_customers || ''} onChange={handleChange} />
+                                            <input name="retention_rate" type="number" placeholder="CUSTOMER RETENTION RATE %" value={formData.retention_rate || ''} onChange={handleChange} />
+                                            <input name="active_customers" type="number" placeholder="NUMBER OF ACTIVE CUSTOMERS" value={formData.active_customers || ''} onChange={handleChange} />
                                         </div>
-                                        <textarea name="partnerships" placeholder="KEY PARTNERSHIPS" value={formData.partnerships} onChange={handleChange} />
+                                        <textarea name="partnerships" placeholder="ANY KEY PARTNERSHIPS?" value={formData.partnerships} onChange={handleChange} />
                                     </div>
                                 )}
 
                                 {step === 6 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">MODEL_</h1>
+                                        <h1 className="noir-title">BUSINESS<br />MODEL_</h1>
                                         <select name="revenue_model" value={formData.revenue_model} onChange={handleChange} className="noir-select">
                                             <option value="">REVENUE MODEL</option>
-                                            <option value="SaaS">SaaS</option>
+                                            <option value="One-time Sales">ONE-TIME SALES</option>
+                                            <option value="Subscription">SUBSCRIPTION</option>
+                                            <option value="Commission">COMMISSION</option>
                                             <option value="Marketplace">MARKETPLACE</option>
-                                            <option value="E-commerce">E-COMMERCE</option>
-                                            <option value="Advertising">ADVERTISING</option>
+                                            <option value="SaaS">SaaS</option>
+                                            <option value="Hybrid">HYBRID</option>
                                         </select>
                                         <textarea name="acquisition_channels" placeholder="CUSTOMER ACQUISITION CHANNELS" value={formData.acquisition_channels} onChange={handleChange} />
                                         <div className="grid-2">
-                                            <input name="cac" type="number" placeholder="CAC (₹)" value={formData.cac || ''} onChange={handleChange} />
-                                            <input name="ltv" type="number" placeholder="LTV (₹)" value={formData.ltv || ''} onChange={handleChange} />
+                                            <input name="cac" type="number" placeholder="CUSTOMER ACQUISITION COST (CAC)" value={formData.cac || ''} onChange={handleChange} />
+                                            <input name="ltv" type="number" placeholder="LIFETIME VALUE (LTV)" value={formData.ltv || ''} onChange={handleChange} />
                                         </div>
-                                        <input name="ltv_cac_ratio" type="number" step="0.1" placeholder="LTV:CAC RATIO" value={formData.ltv_cac_ratio || ''} onChange={handleChange} />
+                                        <input name="ltv_cac_ratio" type="number" step="0.1" placeholder="LTV / CAC RATIO" value={formData.ltv_cac_ratio || ''} onChange={handleChange} />
                                     </div>
                                 )}
 
                                 {step === 7 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">FUNDING_</h1>
+                                        <h1 className="noir-title">INVESTMENT &<br />FUNDRAISING_</h1>
                                         <div className="bool-toggle">
-                                            <span>RAISED BEFORE?</span>
+                                            <span>HAVE YOU RAISED FUNDS BEFORE?</span>
                                             <button className={formData.raised_before === true ? 'active' : ''} onClick={() => handleBool('raised_before', true)}>YES</button>
                                             <button className={formData.raised_before === false ? 'active' : ''} onClick={() => handleBool('raised_before', false)}>NO</button>
                                         </div>
-                                        {formData.raised_before && <textarea name="previous_funding" placeholder="PREVIOUS FUNDING DETAILS" value={formData.previous_funding} onChange={handleChange} />}
+                                        {formData.raised_before && <textarea name="previous_funding" placeholder="IF YES, HOW MUCH AND FROM WHOM?" value={formData.previous_funding} onChange={handleChange} />}
                                         <div className="grid-2">
-                                            <input name="investment_seeking" type="number" placeholder="SEEKING (₹)" value={formData.investment_seeking || ''} onChange={handleChange} />
-                                            <input name="equity_offered" type="number" placeholder="EQUITY %" value={formData.equity_offered || ''} onChange={handleChange} />
+                                            <input name="investment_seeking" type="number" placeholder="HOW MUCH INVESTMENT ARE YOU SEEKING?" value={formData.investment_seeking || ''} onChange={handleChange} />
+                                            <input name="equity_offered" type="number" placeholder="EQUITY OFFERED (DILUTION %)" value={formData.equity_offered || ''} onChange={handleChange} />
                                         </div>
                                         <div className="grid-2">
-                                            <input name="pre_money_valuation" type="number" placeholder="PRE-MONEY VAL (₹)" value={formData.pre_money_valuation || ''} onChange={handleChange} />
-                                            <input name="post_money_valuation" type="number" placeholder="POST-MONEY VAL (₹)" value={formData.post_money_valuation || ''} onChange={handleChange} />
+                                            <input name="pre_money_valuation" type="number" placeholder="PRE-MONEY VALUATION" value={formData.pre_money_valuation || ''} onChange={handleChange} />
+                                            <input name="post_money_valuation" type="number" placeholder="POST-MONEY VALUATION" value={formData.post_money_valuation || ''} onChange={handleChange} />
                                         </div>
-                                        <textarea name="fund_utilization" placeholder="FUND UTILIZATION PLAN" value={formData.fund_utilization} onChange={handleChange} />
-                                        <input name="runway_months" type="number" placeholder="RUNWAY (MONTHS)" value={formData.runway_months || ''} onChange={handleChange} />
+                                        <div style={{ fontSize: '0.7rem', color: '#444', letterSpacing: '1px', marginTop: '15px', marginBottom: '10px' }}>FUND UTILIZATION PLAN (BREAKDOWN %)</div>
+                                        <div className="grid-2">
+                                            <input type="number" placeholder="MARKETING %" value={fundBreakdown.marketing} onChange={(e) => handleFundChange('marketing', e.target.value)} />
+                                            <input type="number" placeholder="PRODUCT DEVELOPMENT %" value={fundBreakdown.product_development} onChange={(e) => handleFundChange('product_development', e.target.value)} />
+                                        </div>
+                                        <div className="grid-2">
+                                            <input type="number" placeholder="HIRING %" value={fundBreakdown.hiring} onChange={(e) => handleFundChange('hiring', e.target.value)} />
+                                            <input type="number" placeholder="OPERATIONS %" value={fundBreakdown.operations} onChange={(e) => handleFundChange('operations', e.target.value)} />
+                                        </div>
+                                        <div className="grid-2">
+                                            <input type="number" placeholder="TECHNOLOGY %" value={fundBreakdown.technology} onChange={(e) => handleFundChange('technology', e.target.value)} />
+                                            <input type="number" placeholder="OTHERS %" value={fundBreakdown.others} onChange={(e) => handleFundChange('others', e.target.value)} />
+                                        </div>
+                                        <input name="runway_months" type="number" placeholder="RUNWAY AFTER INVESTMENT (IN MONTHS)" value={formData.runway_months || ''} onChange={handleChange} />
                                     </div>
                                 )}
 
@@ -258,36 +303,38 @@ export default function StartupVoidForm() {
                                     <div className="input-group">
                                         <h1 className="noir-title">TEAM_</h1>
                                         <textarea name="core_team" placeholder="CORE TEAM MEMBERS & ROLES" value={formData.core_team} onChange={handleChange} />
-                                        <textarea name="planned_hires" placeholder="PLANNED HIRES (12M)" value={formData.planned_hires} onChange={handleChange} />
-                                        <textarea name="advisory_board" placeholder="ADVISORS / MENTORS" value={formData.advisory_board} onChange={handleChange} />
+                                        <textarea name="planned_hires" placeholder="KEY HIRES PLANNED" value={formData.planned_hires} onChange={handleChange} />
+                                        <textarea name="advisory_board" placeholder="ADVISORY BOARD (IF ANY)" value={formData.advisory_board} onChange={handleChange} />
                                     </div>
                                 )}
 
                                 {step === 9 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">VISION_</h1>
+                                        <h1 className="noir-title">SCALABILITY<br />& VISION_</h1>
                                         <textarea name="revenue_projection_3y" placeholder="3-YEAR REVENUE PROJECTION" value={formData.revenue_projection_3y} onChange={handleChange} />
                                         <textarea name="vision_5y" placeholder="5-YEAR VISION" value={formData.vision_5y} onChange={handleChange} />
                                         <select name="exit_strategy" value={formData.exit_strategy} onChange={handleChange} className="noir-select">
                                             <option value="">EXIT STRATEGY</option>
-                                            <option value="IPO">IPO</option>
                                             <option value="Acquisition">ACQUISITION</option>
-                                            <option value="Merger">MERGER</option>
+                                            <option value="IPO">IPO</option>
+                                            <option value="Strategic Buyout">STRATEGIC BUYOUT</option>
+                                            <option value="Not Decided">NOT DECIDED</option>
                                         </select>
                                     </div>
                                 )}
 
                                 {step === 10 && (
                                     <div className="input-group">
-                                        <h1 className="noir-title">READINESS_</h1>
-                                        <input name="pitch_deck_link" placeholder="PITCH DECK URL" value={formData.pitch_deck_link} onChange={handleChange} />
-                                        <input name="financial_projection_link" placeholder="FINANCIAL PROJECTION URL" value={formData.financial_projection_link} onChange={handleChange} />
+                                        <h1 className="noir-title">READINESS FOR<br />PITCH STUDIO_</h1>
+                                        <input name="pitch_deck_link" placeholder="DO YOU HAVE A PITCH DECK? (UPLOAD LINK)" value={formData.pitch_deck_link} onChange={handleChange} />
+                                        <input name="financial_projection_link" placeholder="DO YOU HAVE FINANCIAL PROJECTIONS IN EXCEL? (LINK)" value={formData.financial_projection_link} onChange={handleChange} />
                                         <div className="bool-toggle">
-                                            <span>PREPARED FOR Q&A?</span>
+                                            <span>ARE YOU PREPARED FOR INVESTOR Q&A?</span>
                                             <button className={formData.prepared_for_qa === true ? 'active' : ''} onClick={() => handleBool('prepared_for_qa', true)}>YES</button>
                                             <button className={formData.prepared_for_qa === false ? 'active' : ''} onClick={() => handleBool('prepared_for_qa', false)}>NO</button>
                                         </div>
-                                        <textarea name="why_shortlist" placeholder="WHY SHOULD WE SHORTLIST YOU?" value={formData.why_shortlist} onChange={handleChange} />
+                                        <textarea name="why_shortlist" placeholder="WHY SHOULD WE SHORTLIST YOU? (MAX 150 WORDS)" value={formData.why_shortlist} onChange={(e) => handleWordLimitChange(e, 150)} />
+                                        <div style={{ fontSize: '0.65rem', color: countWords(formData.why_shortlist) >= 150 ? '#ff4444' : '#444', textAlign: 'right', marginTop: '-5px' }}>{countWords(formData.why_shortlist)} / 150 words</div>
                                     </div>
                                 )}
 

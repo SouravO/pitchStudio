@@ -302,11 +302,11 @@ export default function StartupDetailPage() {
             {/* Section: Basic Info */}
             <Section title="Basic Information" icon="🏢">
                 <InfoRow label="Startup Name" value={startup.startup_name} />
-                <InfoRow label="Founder(s)" value={startup.founder_names} />
-                <InfoRow label="Designation" value={startup.designation} />
+                <InfoRow label="Founder Name(s)" value={startup.founder_names} />
+                <InfoRow label="Designation (CEO / Co-founder / etc.)" value={startup.designation} />
                 <InfoRow label="Year of Incorporation" value={startup.year_of_incorporation} />
                 <InfoRow label="Legal Structure" value={startup.legal_structure} />
-                <InfoRow label="Website" value={startup.website} isLink />
+                <InfoRow label="Website (if any)" value={startup.website} isLink />
                 <InfoRow label="Instagram" value={startup.instagram} isLink />
                 <InfoRow label="LinkedIn" value={startup.linkedin} isLink />
                 <InfoRow label="Facebook" value={startup.facebook} isLink />
@@ -315,92 +315,92 @@ export default function StartupDetailPage() {
 
             {/* Section: Founder Profile */}
             <Section title="Founder Profile" icon="👤">
-                <InfoRow label="Education" value={startup.education} />
-                <InfoRow label="Total Experience" value={startup.total_experience_years ? `${startup.total_experience_years} years` : null} />
-                <InfoRow label="Industry Experience" value={startup.industry_experience} />
-                <InfoRow label="Previous Startup Experience" value={startup.previous_startup_experience} />
-                <InfoRow label="Why the Right Person" value={startup.why_right_person} />
+                <InfoRow label="Founder's Educational Background" value={startup.education} />
+                <InfoRow label="Total Years of Experience" value={startup.total_experience_years ? `${startup.total_experience_years} years` : null} />
+                <InfoRow label="Industry Experience (Relevant to Startup)" value={startup.industry_experience} />
+                <InfoRow label="Previous Startup Experience (if any)" value={startup.previous_startup_experience} />
+                <InfoRow label="Why Are You the Right Person to Solve This Problem?" value={startup.why_right_person} />
             </Section>
 
             {/* Section: Startup Concept */}
             <Section title="Startup Concept" icon="💡">
-                <InfoRow label="5 Word Description" value={startup.five_word_description} />
-                <InfoRow label="Elevator Pitch" value={startup.elevator_pitch} />
-                <InfoRow label="Problem Statement" value={startup.problem_statement} />
-                <InfoRow label="Target Customer" value={startup.target_customer} />
-                <InfoRow label="Differentiation" value={startup.differentiation} />
-                <InfoRow label="Market Size" value={startup.market_size} />
+                <InfoRow label="Describe Your Startup in 5 Words" value={startup.five_word_description} />
+                <InfoRow label="One-line Elevator Pitch" value={startup.elevator_pitch} />
+                <InfoRow label="What Problem Are You Solving?" value={startup.problem_statement} />
+                <InfoRow label="Who Is Your Target Customer?" value={startup.target_customer} />
+                <InfoRow label="What Is Your Unique Differentiation?" value={startup.differentiation} />
+                <InfoRow label="Market Size (TAM / SAM / SOM)" value={startup.market_size} />
                 <InfoRow label="Current Stage" value={startup.current_stage} />
             </Section>
 
             {/* Section: Financials */}
-            <Section title="Financials" icon="💰">
+            <Section title="Product / Service Details" icon="💰">
                 <InfoRow label="Products / Services" value={startup.products_services} />
-                <InfoRow label="Pricing" value={startup.pricing} />
-                <InfoRow label="Average Order Value" value={startup.average_order_value ? `₹${startup.average_order_value.toLocaleString()}` : null} />
-                <InfoRow label="Monthly Sales Volume" value={startup.monthly_sales_volume} />
-                <InfoRow label="Gross Margin" value={startup.gross_margin ? `${startup.gross_margin}%` : null} />
-                <InfoRow label="Net Profit Margin" value={startup.net_profit_margin ? `${startup.net_profit_margin}%` : null} />
+                <InfoRow label="Pricing of Each Product / Service" value={startup.pricing} />
+                <InfoRow label="Average Order Value (AOV)" value={startup.average_order_value ? `₹${startup.average_order_value.toLocaleString()}` : null} />
+                <InfoRow label="Monthly Sales Volume (Units)" value={startup.monthly_sales_volume} />
+                <InfoRow label="Gross Margin %" value={startup.gross_margin ? `${startup.gross_margin}%` : null} />
+                <InfoRow label="Net Profit Margin %" value={startup.net_profit_margin ? `${startup.net_profit_margin}%` : null} />
                 <InfoRow label="Cost of Production" value={startup.cost_of_production ? `₹${startup.cost_of_production.toLocaleString()}` : null} />
-                <InfoRow label="Marketing / CAC" value={startup.marketing_cac ? `₹${startup.marketing_cac.toLocaleString()}` : null} />
-                <InfoRow label="Delivery Cost" value={startup.delivery_cost ? `₹${startup.delivery_cost.toLocaleString()}` : null} />
-                <InfoRow label="Contribution Margin" value={startup.contribution_margin ? `₹${startup.contribution_margin.toLocaleString()}` : null} />
+                <InfoRow label="Marketing Cost per Acquisition" value={startup.marketing_cac ? `₹${startup.marketing_cac.toLocaleString()}` : null} />
+                <InfoRow label="Delivery / Service Cost" value={startup.delivery_cost ? `₹${startup.delivery_cost.toLocaleString()}` : null} />
+                <InfoRow label="Contribution Margin per Unit" value={startup.contribution_margin ? `₹${startup.contribution_margin.toLocaleString()}` : null} />
             </Section>
 
             {/* Section: Traction */}
-            <Section title="Traction" icon="📈">
-                <InfoRow label="Generating Revenue" value={startup.is_generating_revenue} />
+            <Section title="Traction & Revenue" icon="📈">
+                <InfoRow label="Are You Generating Revenue?" value={startup.is_generating_revenue} />
                 <InfoRow label="Revenue Year 1" value={startup.revenue_year1 ? `₹${startup.revenue_year1.toLocaleString()}` : null} />
                 <InfoRow label="Revenue Year 2" value={startup.revenue_year2 ? `₹${startup.revenue_year2.toLocaleString()}` : null} />
                 <InfoRow label="Revenue Year 3" value={startup.revenue_year3 ? `₹${startup.revenue_year3.toLocaleString()}` : null} />
                 <InfoRow label="Current Monthly Revenue" value={startup.current_monthly_revenue ? `₹${startup.current_monthly_revenue.toLocaleString()}/mo` : null} />
                 <InfoRow label="Monthly Growth Rate" value={startup.monthly_growth_rate ? `${startup.monthly_growth_rate}%` : null} />
-                <InfoRow label="Retention Rate" value={startup.retention_rate ? `${startup.retention_rate}%` : null} />
-                <InfoRow label="Active Customers" value={startup.active_customers} />
-                <InfoRow label="Partnerships" value={startup.partnerships} />
+                <InfoRow label="Customer Retention Rate" value={startup.retention_rate ? `${startup.retention_rate}%` : null} />
+                <InfoRow label="Number of Active Customers" value={startup.active_customers} />
+                <InfoRow label="Key Partnerships" value={startup.partnerships} />
             </Section>
 
             {/* Section: Business Model */}
             <Section title="Business Model" icon="🔄">
                 <InfoRow label="Revenue Model" value={startup.revenue_model} />
-                <InfoRow label="Acquisition Channels" value={startup.acquisition_channels} />
-                <InfoRow label="Customer Acquisition Cost" value={startup.cac ? `₹${startup.cac.toLocaleString()}` : null} />
-                <InfoRow label="Lifetime Value" value={startup.ltv ? `₹${startup.ltv.toLocaleString()}` : null} />
-                <InfoRow label="LTV:CAC Ratio" value={startup.ltv_cac_ratio ? `${startup.ltv_cac_ratio}x` : null} />
+                <InfoRow label="Customer Acquisition Channels" value={startup.acquisition_channels} />
+                <InfoRow label="Customer Acquisition Cost (CAC)" value={startup.cac ? `₹${startup.cac.toLocaleString()}` : null} />
+                <InfoRow label="Lifetime Value (LTV)" value={startup.ltv ? `₹${startup.ltv.toLocaleString()}` : null} />
+                <InfoRow label="LTV / CAC Ratio" value={startup.ltv_cac_ratio ? `${startup.ltv_cac_ratio}x` : null} />
             </Section>
 
             {/* Section: Fundraising */}
-            <Section title="Fundraising" icon="🎯">
-                <InfoRow label="Raised Before" value={startup.raised_before} />
-                <InfoRow label="Previous Funding" value={startup.previous_funding} />
-                <InfoRow label="Investment Seeking" value={startup.investment_seeking ? `₹${startup.investment_seeking.toLocaleString()}` : null} />
-                <InfoRow label="Equity Offered" value={startup.equity_offered ? `${startup.equity_offered}%` : null} />
+            <Section title="Investment & Fundraising" icon="🎯">
+                <InfoRow label="Have You Raised Funds Before?" value={startup.raised_before} />
+                <InfoRow label="If Yes, How Much and From Whom?" value={startup.previous_funding} />
+                <InfoRow label="How Much Investment Are You Seeking?" value={startup.investment_seeking ? `₹${startup.investment_seeking.toLocaleString()}` : null} />
+                <InfoRow label="Equity Offered (Dilution %)" value={startup.equity_offered ? `${startup.equity_offered}%` : null} />
                 <InfoRow label="Pre-Money Valuation" value={startup.pre_money_valuation ? `₹${startup.pre_money_valuation.toLocaleString()}` : null} />
                 <InfoRow label="Post-Money Valuation" value={startup.post_money_valuation ? `₹${startup.post_money_valuation.toLocaleString()}` : null} />
-                <InfoRow label="Fund Utilization" value={startup.fund_utilization} />
-                <InfoRow label="Runway" value={startup.runway_months ? `${startup.runway_months} months` : null} />
+                <InfoRow label="Fund Utilization Plan (Breakdown %)" value={startup.fund_utilization} />
+                <InfoRow label="Runway After Investment" value={startup.runway_months ? `${startup.runway_months} months` : null} />
             </Section>
 
             {/* Section: Team */}
             <Section title="Team" icon="👥">
-                <InfoRow label="Core Team" value={startup.core_team} />
-                <InfoRow label="Planned Hires" value={startup.planned_hires} />
-                <InfoRow label="Advisory Board" value={startup.advisory_board} />
+                <InfoRow label="Core Team Members & Roles" value={startup.core_team} />
+                <InfoRow label="Key Hires Planned" value={startup.planned_hires} />
+                <InfoRow label="Advisory Board (if any)" value={startup.advisory_board} />
             </Section>
 
             {/* Section: Vision */}
-            <Section title="Vision" icon="🔭">
-                <InfoRow label="Revenue Projection (3Y)" value={startup.revenue_projection_3y} />
+            <Section title="Scalability & Vision" icon="🔭">
+                <InfoRow label="3-Year Revenue Projection" value={startup.revenue_projection_3y} />
                 <InfoRow label="5-Year Vision" value={startup.vision_5y} />
                 <InfoRow label="Exit Strategy" value={startup.exit_strategy} />
             </Section>
 
             {/* Section: Pitch Readiness */}
-            <Section title="Pitch Readiness" icon="🚀">
-                <InfoRow label="Pitch Deck" value={startup.pitch_deck_link} isLink />
-                <InfoRow label="Financial Projections" value={startup.financial_projection_link} isLink />
-                <InfoRow label="Prepared for Q&A" value={startup.prepared_for_qa} />
-                <InfoRow label="Why Shortlist" value={startup.why_shortlist} />
+            <Section title="Readiness for Pitch Studio" icon="🚀">
+                <InfoRow label="Pitch Deck (Upload Link)" value={startup.pitch_deck_link} isLink />
+                <InfoRow label="Financial Projections in Excel" value={startup.financial_projection_link} isLink />
+                <InfoRow label="Prepared for Investor Q&A" value={startup.prepared_for_qa} />
+                <InfoRow label="Why Should We Shortlist You?" value={startup.why_shortlist} />
             </Section>
 
             {/* Meta info */}
