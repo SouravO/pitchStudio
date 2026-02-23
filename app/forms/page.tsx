@@ -387,8 +387,9 @@ export default function StartupVoidForm() {
                 .noir-select option { background: #000; color: #fff; }
                 @media (max-width: 768px) {
                     .visual-column { display: none; }
-                    .form-column { padding: 30px 20px; }
+                    .form-column { padding: 30px 20px 100px 20px; }
                     .noir-title { font-size: 6vw; }
+                    .noir-footer { padding-bottom: 20px; }
                 }
             `}</style>
         </div>
