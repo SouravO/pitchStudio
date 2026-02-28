@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getStartups, updateStartupStatus } from '@/lib/actions';
+import { getStartupsList, getStartupById, updateStartupStatus } from '@/lib/actions';
 import { Startup } from '@/types/startup';
 import toast from 'react-hot-toast';
 import SubmissionModal from '@/components/admin/SubmissionModal';
@@ -25,18 +25,20 @@ export default function SubmissionsPage({
     title = 'All Submissions',
     showExport = false,
 }: SubmissionsPageProps) {
-    const [startups, setStartups] = useState<Startup[]>([]);
+    const [startups, setStartups] = useState<Partial<Startup>[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [togglingId, setTogglingId] = useState<string | null>(null);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [stage, setStage] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     const [selectedStartup, setSelectedStartup] = useState<Startup | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalLoading, setModalLoading] = useState(false);
 
     const pageSize = 10;
 
@@ -61,16 +63,26 @@ export default function SubmissionsPage({
         }
     };
 
-    const handleRowClick = (startup: Startup) => {
-        setSelectedStartup(startup);
+    const handleRowClick = async (startup: Partial<Startup>) => {
+        setModalLoading(true);
         setIsModalOpen(true);
+        try {
+            const result = await getStartupById(startup.id as string);
+            if (result.data) {
+                setSelectedStartup(result.data);
+            }
+        } catch {
+            // fallback: show partial data
+        } finally {
+            setModalLoading(false);
+        }
     };
 
     const fetchStartups = useCallback(async () => {
         setLoading(true);
         try {
-            const result = await getStartups(page, pageSize, {
-                search: search || undefined,
+            const result = await getStartupsList(page, pageSize, {
+                search: debouncedSearch || undefined,
                 status: statusFilter || undefined,
                 stage: stage || undefined,
                 sortBy,
@@ -83,15 +95,21 @@ export default function SubmissionsPage({
         } finally {
             setLoading(false);
         }
-    }, [page, search, statusFilter, stage, sortBy, sortOrder]);
+    }, [page, debouncedSearch, statusFilter, stage, sortBy, sortOrder]);
 
     useEffect(() => {
         fetchStartups();
     }, [fetchStartups]);
 
+    // Debounce search input by 300ms
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
     useEffect(() => {
         setPage(1);
-    }, [search, stage, sortBy, sortOrder]);
+    }, [debouncedSearch, stage, sortBy, sortOrder]);
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -102,10 +120,10 @@ export default function SubmissionsPage({
             'Stage', 'Status', 'Revenue', 'Date',
         ];
         const rows = startups.map((s) => [
-            s.startup_name, s.founder_names, s.email, s.city || '', s.country || '',
-            s.current_stage || '', s.status,
+            s.startup_name || '', s.founder_names || '', s.email || '', s.city || '', s.country || '',
+            s.current_stage || '', s.status || '',
             s.current_monthly_revenue?.toString() || '',
-            new Date(s.created_at).toLocaleDateString(),
+            s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
         ]);
         const csvContent = [
             headers.join(','),
@@ -332,7 +350,7 @@ export default function SubmissionsPage({
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleToggleStatus(startup.id, startup.status);
+                                                    handleToggleStatus(startup.id as string, startup.status as string);
                                                 }}
                                                 disabled={togglingId === startup.id}
                                                 className={`badge ${startup.status === 'Selected'
@@ -354,11 +372,11 @@ export default function SubmissionsPage({
                                             </button>
                                         </td>
                                         <td style={{ whiteSpace: 'nowrap' }}>
-                                            {new Date(startup.created_at).toLocaleDateString('en-IN', {
+                                            {startup.created_at ? new Date(startup.created_at).toLocaleDateString('en-IN', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',
-                                            })}
+                                            }) : '—'}
                                         </td>
                                     </tr>
                                 ))}

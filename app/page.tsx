@@ -106,7 +106,7 @@ export default function PitchStudioNoir() {
                 <Command size={40} />
               </motion.div>
               <div style={{ marginTop: '20px', fontWeight: 700, letterSpacing: '2px' }}>
-              <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
+                <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
               </div>
             </div>
           </motion.div>
@@ -136,7 +136,7 @@ export default function PitchStudioNoir() {
         backdropFilter: 'blur(10px)',
         background: 'rgba(0,0,0,0.5)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'start',  }}>
+        <div style={{ display: 'flex', alignItems: 'start', }}>
           {/* <Rocket size={24} /> */}
           <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
             <img src="/assets/logo.png" alt="Logo" width={120} height={120} />
@@ -184,7 +184,7 @@ export default function PitchStudioNoir() {
         </div>
       </section>
 
-    
+
 
       {/* 6. HOW IT WORKS - UPDATED VISIBILITY */}
       <section id="how" style={{

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getStartups } from '@/lib/actions';
+import { getStartupsList } from '@/lib/actions';
 import { Startup } from '@/types/startup';
 import {
     Search,
@@ -14,11 +14,12 @@ import {
 } from 'lucide-react';
 
 export default function SelectedPage() {
-    const [startups, setStartups] = useState<Startup[]>([]);
+    const [startups, setStartups] = useState<Partial<Startup>[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const pageSize = 10;
@@ -26,8 +27,8 @@ export default function SelectedPage() {
     const fetchStartups = useCallback(async () => {
         setLoading(true);
         try {
-            const result = await getStartups(page, pageSize, {
-                search: search || undefined,
+            const result = await getStartupsList(page, pageSize, {
+                search: debouncedSearch || undefined,
                 status: 'Selected',
                 sortBy,
                 sortOrder,
@@ -39,15 +40,21 @@ export default function SelectedPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, search, sortBy, sortOrder]);
+    }, [page, debouncedSearch, sortBy, sortOrder]);
 
     useEffect(() => {
         fetchStartups();
     }, [fetchStartups]);
 
+    // Debounce search input by 300ms
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
     useEffect(() => {
         setPage(1);
-    }, [search, sortBy, sortOrder]);
+    }, [debouncedSearch, sortBy, sortOrder]);
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -58,10 +65,10 @@ export default function SelectedPage() {
             'Stage', 'Status', 'Revenue', 'Date',
         ];
         const rows = startups.map((s) => [
-            s.startup_name, s.founder_names, s.email, s.city || '', s.country || '',
-            s.current_stage || '', s.status,
+            s.startup_name || '', s.founder_names || '', s.email || '', s.city || '', s.country || '',
+            s.current_stage || '', s.status || '',
             s.current_monthly_revenue?.toString() || '',
-            new Date(s.created_at).toLocaleDateString(),
+            s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
         ]);
         const csvContent = [
             headers.join(','),
@@ -246,11 +253,11 @@ export default function SelectedPage() {
                                                 : '—'}
                                         </td>
                                         <td style={{ whiteSpace: 'nowrap' }}>
-                                            {new Date(startup.created_at).toLocaleDateString('en-IN', {
+                                            {startup.created_at ? new Date(startup.created_at).toLocaleDateString('en-IN', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',
-                                            })}
+                                            }) : '—'}
                                         </td>
                                     </tr>
                                 ))}

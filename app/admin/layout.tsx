@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard,
@@ -105,7 +106,7 @@ export default function AdminLayout({
                                 textTransform: 'uppercase',
                             }}
                         >
-                           <img src="/assets/logo.png" alt="Logo" />
+                            <Image src="/assets/logo.png" alt="Logo" width={100} height={30} />
                         </span>
                     </Link>
                     <button

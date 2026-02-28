@@ -1,43 +1,17 @@
 'use client';
 import React, { useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas, useFrame } from '@react-three/fiber';
-import {
-    MeshTransmissionMaterial, PerspectiveCamera, Environment, Float,
-    MeshDistortMaterial, ContactShadows
-} from '@react-three/drei';
-import * as THREE from 'three';
 import { Plus, Command, Hash, ChevronLeft, Loader2, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { submitStartup } from '@/lib/actions';
 
-// --- VISUAL ENGINE (The Monolith) ---
-function VoidMonolith({ step, mouse }: { step: number; mouse: React.RefObject<number[]> }) {
-    const meshRef = useRef<any>(null);
-    const coreRef = useRef<any>(null);
-    useFrame((state) => {
-        const t = state.clock.getElapsedTime();
-        if (meshRef.current) {
-            meshRef.current.rotation.y = t * (0.05 + (step * 0.01));
-            meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, mouse.current[0] * 0.5, 0.05);
-            meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, mouse.current[1] * 0.5, 0.05);
-        }
-        if (coreRef.current) {
-            coreRef.current.distort = 0.2 + (step * 0.03);
-            coreRef.current.speed = 1 + (step * 0.1);
-        }
-    });
-    return (
-        <group>
-            <mesh ref={coreRef}><sphereGeometry args={[0.8, 64, 64]} /><MeshDistortMaterial color="#000" speed={2} distort={0.4} metalness={1} roughness={0.01} /></mesh>
-            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                <mesh ref={meshRef}><octahedronGeometry args={[1.6, 0]} /><MeshTransmissionMaterial backside samples={8} thickness={2} chromaticAberration={0.02} color="#fff" transmission={1} /></mesh>
-            </Float>
-            <ContactShadows position={[0, -3, 0]} opacity={0.6} scale={10} blur={2} />
-        </group>
-    );
-}
+// Lazy-load the heavy 3D scene — keeps Three.js out of the initial bundle
+const Scene3DForm = dynamic(() => import('@/components/3d/Scene3DForm'), {
+    ssr: false,
+    loading: () => null,
+});
 
 export default function StartupVoidForm() {
     const router = useRouter();
@@ -136,14 +110,10 @@ export default function StartupVoidForm() {
 
     return (
         <div className="noir-root" onMouseMove={(e) => (mouse.current = [(e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1])}>
+            {/* CSS noise pattern instead of external Wikipedia image */}
             <div className="film-grain" />
             <main className="noir-layout">
                 <section className="form-column">
-                    {/* <header className="noir-header">
-                        <div className="noir-tag"><Command size={14} /><span>VOID_SESSION_2026</span></div>
-                        <div className="id-code"><Hash size={12} /><span>PHASE_0{step}_STABLE</span></div>
-                    </header> */}
-
                     <div className="form-scroll-wrapper">
                         <AnimatePresence mode="wait">
                             <motion.div key={step} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.5 }} className="step-content">
@@ -188,7 +158,7 @@ export default function StartupVoidForm() {
                                 {step === 2 && (
                                     <div className="input-group">
                                         <h1 className="noir-title">FOUNDER<br />PROFILE_</h1>
-                                        <input name="education" placeholder="FOUNDER’S EDUCATIONAL BACKGROUND" value={formData.education} onChange={handleChange} required />
+                                        <input name="education" placeholder="FOUNDER'S EDUCATIONAL BACKGROUND" value={formData.education} onChange={handleChange} required />
                                         <input name="total_experience_years" type="number" placeholder="TOTAL YEARS OF EXPERIENCE" value={formData.total_experience_years || ''} onChange={handleChange} />
                                         <textarea name="industry_experience" placeholder="INDUSTRY EXPERIENCE (RELEVANT TO STARTUP)" value={formData.industry_experience} onChange={handleChange} />
                                         <textarea name="previous_startup_experience" placeholder="PREVIOUS STARTUP EXPERIENCE (IF ANY)" value={formData.previous_startup_experience} onChange={handleChange} />
@@ -377,7 +347,7 @@ export default function StartupVoidForm() {
 
                 <section className="visual-column">
                     <div className="canvas-holder">
-                        <Canvas dpr={[1, 2]}><PerspectiveCamera makeDefault position={[0, 0, 6]} /><Environment preset="night" /><VoidMonolith step={step} mouse={mouse} /></Canvas>
+                        <Scene3DForm step={step} mouse={mouse} />
                     </div>
                 </section>
             </main>
@@ -387,7 +357,10 @@ export default function StartupVoidForm() {
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
                 .noir-root { width: 100vw; height: 100vh; position: relative; background: #000; }
-                .film-grain { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.05; background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Stop_Sign_Ind_5.png'); }
+                .film-grain {
+                    position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.03;
+                    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+                }
                 .noir-layout { display: flex; height: 100%; position: relative; z-index: 10; }
                 .form-column { flex: 1; padding: 40px 60px; display: flex; flex-direction: column; background: #000; border-right: 1px solid #111; }
                 .form-scroll-wrapper { flex: 1; overflow-y: auto; display: flex; align-items: flex-start; padding: 20px 15px 20px 0; }

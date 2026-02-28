@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getAnalytics, getStartups } from '@/lib/actions';
+import { getAnalytics, getStartupsList } from '@/lib/actions';
 import { Startup } from '@/types/startup';
 import {
     BarChart3,
@@ -20,7 +20,7 @@ export default function AdminDashboardPage() {
         pending: 0,
         selectionRatio: 0,
     });
-    const [recentStartups, setRecentStartups] = useState<Startup[]>([]);
+    const [recentStartups, setRecentStartups] = useState<Partial<Startup>[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
             try {
                 const [analyticsData, startupsData] = await Promise.all([
                     getAnalytics(),
-                    getStartups(1, 5),
+                    getStartupsList(1, 5),
                 ]);
                 setAnalytics(analyticsData);
                 setRecentStartups(startupsData.data);
@@ -255,11 +255,11 @@ export default function AdminDashboardPage() {
                                             </span>
                                         </td>
                                         <td>
-                                            {new Date(startup.created_at).toLocaleDateString('en-IN', {
+                                            {startup.created_at ? new Date(startup.created_at).toLocaleDateString('en-IN', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',
-                                            })}
+                                            }) : '—'}
                                         </td>
                                     </tr>
                                 ))}
