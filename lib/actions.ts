@@ -190,6 +190,28 @@ export async function updateStartupStatus(
     }
 }
 
+// Get all selected startups (full data, no pagination) - for CSV export
+export async function getAllSelectedStartups(): Promise<{ data: Startup[]; error?: string }> {
+    try {
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+            .from('startups')
+            .select('*')
+            .eq('status', 'Selected')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Supabase fetch error:', error);
+            return { data: [], error: error.message };
+        }
+
+        return { data: data as Startup[] };
+    } catch (err) {
+        console.error('Get all selected startups error:', err);
+        return { data: [], error: 'An unexpected error occurred' };
+    }
+}
+
 // Get analytics data — runs both count queries in parallel
 export async function getAnalytics(): Promise<{
     total: number;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { getStartupsList } from '@/lib/actions';
+import { getStartupsList, getAllSelectedStartups } from '@/lib/actions';
 import { Startup } from '@/types/startup';
 import {
     Search,
@@ -22,6 +22,7 @@ export default function SelectedPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [exporting, setExporting] = useState(false);
     const pageSize = 10;
 
     const fetchStartups = useCallback(async () => {
@@ -58,29 +59,70 @@ export default function SelectedPage() {
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
-    const handleExportCSV = () => {
-        if (startups.length === 0) return;
-        const headers = [
-            'Startup Name', 'Founder', 'Email', 'City', 'Country',
-            'Stage', 'Status', 'Revenue', 'Date',
-        ];
-        const rows = startups.map((s) => [
-            s.startup_name || '', s.founder_names || '', s.email || '', s.city || '', s.country || '',
-            s.current_stage || '', s.status || '',
-            s.current_monthly_revenue?.toString() || '',
-            s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
-        ]);
-        const csvContent = [
-            headers.join(','),
-            ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-        ].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `selected_startups_${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+    const handleExportCSV = async () => {
+        setExporting(true);
+        try {
+            const { data: allStartups } = await getAllSelectedStartups();
+
+            if (!allStartups || allStartups.length === 0) return;
+
+            const headers = [
+                'Startup Name', 'Founder', 'Designation', 'Contact Number', 'Email',
+                'City', 'Country', 'Website', 'Instagram', 'LinkedIn', 'Facebook', 'Youtube',
+                'Year of Incorporation', 'Legal Structure',
+                'Education', 'Total Experience Years', 'Industry Experience', 'Previous Startup Experience', 'Why Right Person',
+                'Five Word Description', 'Elevator Pitch', 'Problem Statement', 'Target Customer', 'Differentiation',
+                'Market Size', 'Current Stage',
+                'Products Services', 'Pricing', 'Average Order Value', 'Monthly Sales Volume', 'Gross Margin',
+                'Net Profit Margin', 'Cost of Production', 'Marketing CAC', 'Delivery Cost', 'Contribution Margin',
+                'Is Generating Revenue', 'Revenue Year 1', 'Revenue Year 2', 'Revenue Year 3',
+                'Current Monthly Revenue', 'Monthly Growth Rate', 'Retention Rate', 'Active Customers', 'Partnerships',
+                'Revenue Model', 'Acquisition Channels', 'CAC', 'LTV', 'LTV CAC Ratio',
+                'Raised Before', 'Previous Funding', 'Investment Seeking', 'Equity Offered',
+                'Pre Money Valuation', 'Post Money Valuation', 'Fund Utilization', 'Runway Months',
+                'Core Team', 'Planned Hires', 'Advisory Board',
+                'Revenue Projection 3Y', 'Vision 5Y', 'Exit Strategy',
+                'Pitch Deck Link', 'Financial Projection Link', 'Prepared for QA', 'Why Shortlist',
+                'Status', 'Created At',
+            ];
+
+            const rows = allStartups.map((s) => [
+                s.startup_name || '', s.founder_names || '', s.designation || '', s.contact_number || '', s.email || '',
+                s.city || '', s.country || '', s.website || '', s.instagram || '', s.linkedin || '', s.facebook || '', s.youtube || '',
+                s.year_of_incorporation?.toString() || '', s.legal_structure || '',
+                s.education || '', s.total_experience_years?.toString() || '', s.industry_experience || '', s.previous_startup_experience || '', s.why_right_person || '',
+                s.five_word_description || '', s.elevator_pitch || '', s.problem_statement || '', s.target_customer || '', s.differentiation || '',
+                s.market_size || '', s.current_stage || '',
+                s.products_services || '', s.pricing || '', s.average_order_value?.toString() || '', s.monthly_sales_volume?.toString() || '', s.gross_margin?.toString() || '',
+                s.net_profit_margin?.toString() || '', s.cost_of_production?.toString() || '', s.marketing_cac?.toString() || '', s.delivery_cost?.toString() || '', s.contribution_margin?.toString() || '',
+                s.is_generating_revenue?.toString() || '', s.revenue_year1?.toString() || '', s.revenue_year2?.toString() || '', s.revenue_year3?.toString() || '',
+                s.current_monthly_revenue?.toString() || '', s.monthly_growth_rate?.toString() || '', s.retention_rate?.toString() || '', s.active_customers?.toString() || '', s.partnerships || '',
+                s.revenue_model || '', s.acquisition_channels || '', s.cac?.toString() || '', s.ltv?.toString() || '', s.ltv_cac_ratio?.toString() || '',
+                s.raised_before?.toString() || '', s.previous_funding || '', s.investment_seeking?.toString() || '', s.equity_offered?.toString() || '',
+                s.pre_money_valuation?.toString() || '', s.post_money_valuation?.toString() || '', s.fund_utilization || '', s.runway_months?.toString() || '',
+                s.core_team || '', s.planned_hires || '', s.advisory_board || '',
+                s.revenue_projection_3y || '', s.vision_5y || '', s.exit_strategy || '',
+                s.pitch_deck_link || '', s.financial_projection_link || '', s.prepared_for_qa?.toString() || '', s.why_shortlist || '',
+                s.status || '', s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `selected_startups_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Export failed:', err);
+        } finally {
+            setExporting(false);
+        }
     };
 
     return (
@@ -119,6 +161,7 @@ export default function SelectedPage() {
                 {startups.length > 0 && (
                     <button
                         onClick={handleExportCSV}
+                        disabled={exporting}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -129,12 +172,13 @@ export default function SelectedPage() {
                             borderRadius: '6px',
                             color: '#999',
                             fontSize: '0.75rem',
-                            cursor: 'pointer',
+                            cursor: exporting ? 'not-allowed' : 'pointer',
+                            opacity: exporting ? 0.5 : 1,
                             letterSpacing: '0.05em',
                         }}
                     >
-                        <Download size={12} />
-                        EXPORT CSV
+                        {exporting ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={12} />}
+                        {exporting ? 'EXPORTING...' : 'EXPORT CSV'}
                     </button>
                 )}
             </div>
