@@ -2,74 +2,93 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Loader from '@/components/layout/Loader';
-import ParticleHero from '@/components/particles/ParticleHero';
+import FlowingParticles from '@/components/particles/FlowingParticles';
+import { homeSections } from '@/config/homeSections';
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef(0);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  });
-
-  const contentOpacity = useTransform(scrollYProgress, [0.25, 0.45], [0, 1]);
-  const contentY = useTransform(scrollYProgress, [0.25, 0.45], [40, 0]);
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2500);
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    return scrollYProgress.on('change', (v) => {
-      scrollRef.current = v;
-    });
-  }, [scrollYProgress]);
-
   return (
-    <div ref={containerRef} className="bg-black text-white min-h-screen">
+    <div className="bg-black text-white min-h-screen relative">
       <Loader loading={loading} />
-
       <Navbar />
+      
+      <div className="relative">
+        <FlowingParticles sectionRefs={sectionRefs} />
 
-      <ParticleHero scrollRef={scrollRef} />
+        {homeSections.map((section, idx) => {
+        const isLeft = section.alignment === 'left';
+        const isHero = idx === 0;
 
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-10">
-        <motion.div
-          style={{ opacity: contentOpacity, y: contentY }}
-          className="max-w-4xl mx-auto"
-        >
-          <p className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed text-white/80 mb-16 max-w-3xl mx-auto">
-            We engineer the bridge between visionary founders and institutional capital through high-fidelity pitch sequences.
-          </p>
+        return (
+          <section
+            key={section.id}
+            ref={(el) => {
+              sectionRefs.current[idx] = el;
+            }}
+            className={`min-h-screen flex items-center ${isHero ? 'justify-center' : ''} px-6 md:px-12 lg:px-20 py-20`}
+          >
+            <div className={`w-full max-w-7xl mx-auto flex flex-col ${isLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20`}>
+              {/* Content Area - 60% */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true, margin: "-100px" }}
+                className={`w-full lg:w-3/5 ${isHero ? 'text-center lg:text-left' : 'text-left'}`}
+              >
+                <h2 className={`font-extrabold tracking-tight mb-6 ${isHero ? 'text-5xl md:text-6xl lg:text-7xl' : 'text-4xl md:text-5xl lg:text-6xl'}`}>
+                  {section.title}
+                </h2>
+                
+                <p className="text-lg md:text-xl lg:text-2xl font-light leading-relaxed text-white/70 mb-10 max-w-2xl">
+                  {section.description}
+                </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-16">
-            {[
-              { number: '500+', label: 'Startups Reviewed' },
-              { number: '$500M', label: 'Capital Deployed' },
-              { number: '50+', label: 'Investor Partners' },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-4xl md:text-5xl font-bold text-white mb-2">{stat.number}</p>
-                <p className="text-sm text-white/40 tracking-widest uppercase">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+                {isHero && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
+                    {[
+                      { number: '500+', label: 'Startups Reviewed' },
+                      { number: '$500M', label: 'Capital Deployed' },
+                      { number: '50+', label: 'Investor Partners' },
+                    ].map((stat) => (
+                      <div key={stat.label} className="text-center lg:text-left">
+                        <p className="text-4xl md:text-5xl font-bold text-white mb-2">{stat.number}</p>
+                        <p className="text-xs text-white/40 tracking-widest uppercase">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-          <div className="flex flex-wrap gap-5 justify-center">
-            <Link href="/forms" className="btn-zebra-primary">START APPLICATION</Link>
-            <Link href="/what-we-do" className="btn-zebra-outline">HOW IT WORKS</Link>
-          </div>
-        </motion.div>
+                {section.ctaText && section.ctaLink && (
+                  <div className={isHero ? 'flex flex-wrap gap-4 justify-center lg:justify-start' : ''}>
+                    <Link
+                      href={section.ctaLink}
+                      className={section.ctaStyle === 'primary' ? 'btn-zebra-primary' : 'btn-zebra-outline'}
+                    >
+                      {section.ctaText}
+                    </Link>
+                  </div>
+                )}
+              </motion.div>
 
-        <div className="flex-1" />
-      </section>
+              {/* Particle Area - 40% (handled by FlowingParticles component) */}
+              <div className="w-full lg:w-2/5 h-64 lg:h-96" />
+            </div>
+          </section>
+        );
+      })}
+      </div>
 
       <Footer />
     </div>
