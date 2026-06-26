@@ -14,39 +14,24 @@ interface FormSelectProps {
 }
 
 export default function FormSelect({
-    label,
-    name,
-    value,
-    onChange,
-    options,
-    placeholder = 'Select an option',
-    required = false,
-    error,
+    label, name, value, onChange, options,
+    placeholder = 'Select an option', required = false, error,
 }: FormSelectProps) {
     return (
-        <div style={{ marginBottom: '16px' }}>
+        <div className="mb-4">
             <label htmlFor={name} className="form-label">
                 {label}
-                {required && (
-                    <span style={{ color: 'var(--status-error)', marginLeft: '4px' }}>*</span>
-                )}
+                {required && <span className="text-red-500 ml-1">*</span>}
             </label>
             <select
-                id={name}
-                name={name}
-                value={value ?? ''}
-                onChange={onChange}
+                id={name} name={name}
+                value={value ?? ''} onChange={onChange}
                 required={required}
-                className={`form-input ${error ? 'error' : ''}`}
-                style={{ cursor: 'pointer' }}
+                className={`form-input cursor-pointer ${error ? 'error' : ''}`}
             >
-                <option value="" disabled>
-                    {placeholder}
-                </option>
+                <option value="" disabled>{placeholder}</option>
                 {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
+                    <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
             </select>
             {error && <div className="form-error">{error}</div>}

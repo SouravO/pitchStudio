@@ -17,37 +17,20 @@ interface FormInputProps {
 }
 
 export default function FormInput({
-    label,
-    name,
-    type = 'text',
-    value,
-    onChange,
-    placeholder,
-    required = false,
-    error,
-    min,
-    max,
-    step,
+    label, name, type = 'text', value, onChange,
+    placeholder, required = false, error, min, max, step,
 }: FormInputProps) {
     return (
-        <div style={{ marginBottom: '16px' }}>
+        <div className="mb-4">
             <label htmlFor={name} className="form-label">
                 {label}
-                {required && (
-                    <span style={{ color: 'var(--status-error)', marginLeft: '4px' }}>*</span>
-                )}
+                {required && <span className="text-red-500 ml-1">*</span>}
             </label>
             <input
-                id={name}
-                name={name}
-                type={type}
-                value={value ?? ''}
-                onChange={onChange}
-                placeholder={placeholder}
-                required={required}
-                min={min}
-                max={max}
-                step={step}
+                id={name} name={name} type={type}
+                value={value ?? ''} onChange={onChange}
+                placeholder={placeholder} required={required}
+                min={min} max={max} step={step}
                 className={`form-input ${error ? 'error' : ''}`}
             />
             {error && <div className="form-error">{error}</div>}

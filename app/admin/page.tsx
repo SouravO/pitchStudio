@@ -43,21 +43,8 @@ export default function AdminDashboardPage() {
 
     if (loading) {
         return (
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: '50vh',
-                }}
-            >
-                <Loader2
-                    size={24}
-                    style={{
-                        animation: 'spin 1s linear infinite',
-                        color: '#fff',
-                    }}
-                />
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader2 size={24} className="animate-spin text-white" />
             </div>
         );
     }
@@ -87,134 +74,48 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="animate-fade-in">
-            <div style={{ marginBottom: '40px' }}>
-                <h1
-                    style={{
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        marginBottom: '4px',
-                        letterSpacing: '0.15em',
-                        textTransform: 'uppercase',
-                        color: '#fff',
-                    }}
-                >
+            <div className="mb-10">
+                <h1 className="text-sm font-semibold mb-1 tracking-wider uppercase text-white">
                     DASHBOARD
                 </h1>
-                <p style={{ color: '#333', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <p className="text-neutral-800 text-xs tracking-wide">
                     Overview of all startup applications
                 </p>
             </div>
 
-            {/* Stats Grid */}
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '1px',
-                    marginBottom: '48px',
-                    background: '#111',
-                    border: '1px solid #111',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                }}
-            >
+            <div className="grid gap-[1px] mb-12 bg-neutral-900 border border-neutral-900 rounded-xl overflow-hidden"
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 {statCards.map((card, i) => (
-                    <div
-                        key={i}
-                        style={{
-                            padding: '28px 24px',
-                            background: '#0a0a0a',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                marginBottom: '16px',
-                            }}
-                        >
-                            <span
-                                style={{
-                                    fontSize: '0.65rem',
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.1em',
-                                    color: '#444',
-                                }}
-                            >
+                    <div key={i} className="p-7 bg-neutral-950">
+                        <div className="flex items-center justify-between mb-4">
+                            <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-neutral-700">
                                 {card.label}
                             </span>
-                            <div style={{ color: '#333' }}>
-                                {card.icon}
-                            </div>
+                            <div className="text-neutral-800">{card.icon}</div>
                         </div>
-                        <div
-                            style={{
-                                fontSize: '2.2rem',
-                                fontWeight: 700,
-                                color: '#fff',
-                                letterSpacing: '-0.02em',
-                            }}
-                        >
+                        <div className="text-4xl font-bold text-white tracking-tight">
                             {card.value}
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Recent Submissions */}
-            <div
-                style={{
-                    background: '#0a0a0a',
-                    border: '1px solid #111',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '20px 24px',
-                        borderBottom: '1px solid #111',
-                    }}
-                >
-                    <h2 style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#999' }}>
+            <div className="bg-neutral-950 border border-neutral-900 rounded-xl overflow-hidden">
+                <div className="flex justify-between items-center px-6 py-5 border-b border-neutral-900">
+                    <h2 className="text-xs font-semibold tracking-wider uppercase text-neutral-500">
                         RECENT SUBMISSIONS
                     </h2>
-                    <Link
-                        href="/admin/submissions"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '0.7rem',
-                            color: '#555',
-                            textDecoration: 'none',
-                            fontWeight: 500,
-                            letterSpacing: '0.05em',
-                            transition: 'color 0.2s',
-                        }}
-                    >
+                    <Link href="/admin/submissions" className="flex items-center gap-1.5 text-[0.7rem] text-neutral-600 no-underline font-medium tracking-wide hover:text-neutral-400 transition-colors">
                         VIEW ALL <ArrowRight size={12} />
                     </Link>
                 </div>
 
                 {recentStartups.length === 0 ? (
-                    <div
-                        style={{
-                            textAlign: 'center',
-                            padding: '48px',
-                            color: '#333',
-                            fontSize: '0.85rem',
-                        }}
-                    >
+                    <div className="text-center py-12 text-neutral-800 text-sm">
                         No submissions yet
                     </div>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
+                    <div className="overflow-x-auto">
                         <table className="admin-table">
                             <thead>
                                 <tr>
@@ -230,14 +131,7 @@ export default function AdminDashboardPage() {
                                 {recentStartups.map((startup) => (
                                     <tr key={startup.id}>
                                         <td>
-                                            <Link
-                                                href={`/admin/submissions/${startup.id}`}
-                                                style={{
-                                                    textDecoration: 'none',
-                                                    color: '#fff',
-                                                    fontWeight: 500,
-                                                }}
-                                            >
+                                            <Link href={`/admin/submissions/${startup.id}`} className="no-underline text-white font-medium">
                                                 {startup.startup_name}
                                             </Link>
                                         </td>
@@ -245,20 +139,13 @@ export default function AdminDashboardPage() {
                                         <td>{startup.city || '—'}</td>
                                         <td>{startup.current_stage || '—'}</td>
                                         <td>
-                                            <span
-                                                className={`badge ${startup.status === 'Selected'
-                                                    ? 'badge-selected'
-                                                    : 'badge-pending'
-                                                    }`}
-                                            >
+                                            <span className={`badge ${startup.status === 'Selected' ? 'badge-selected' : 'badge-pending'}`}>
                                                 {startup.status}
                                             </span>
                                         </td>
                                         <td>
                                             {startup.created_at ? new Date(startup.created_at).toLocaleDateString('en-IN', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric',
+                                                day: 'numeric', month: 'short', year: 'numeric',
                                             }) : '—'}
                                         </td>
                                     </tr>

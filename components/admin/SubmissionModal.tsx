@@ -36,21 +36,17 @@ interface SubmissionModalProps {
 }
 
 export default function SubmissionModal({
-    startup,
-    isOpen,
-    onClose,
-    onToggleStatus,
-    isToggling,
+    startup, isOpen, onClose, onToggleStatus, isToggling,
 }: SubmissionModalProps) {
     if (!isOpen) return null;
 
     const Section = ({ title, icon: Icon, children }: { title: string, icon: any, children: React.ReactNode }) => (
-        <div style={{ marginBottom: '36px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', borderBottom: '1px solid #111', paddingBottom: '10px' }}>
-                <Icon size={16} style={{ color: '#555' }} />
-                <h3 style={{ fontSize: '0.7rem', fontWeight: 600, color: '#999', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{title}</h3>
+        <div className="mb-9">
+            <div className="flex items-center gap-2.5 mb-4.5 border-b border-neutral-900 pb-2.5">
+                <Icon size={16} className="text-neutral-600" />
+                <h3 className="text-[0.7rem] font-semibold text-neutral-500 tracking-wider uppercase">{title}</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+            <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
                 {children}
             </div>
         </div>
@@ -58,13 +54,10 @@ export default function SubmissionModal({
 
     const DetailItem = ({ label, value, fullWidth = false }: { label: string, value: any, fullWidth?: boolean }) => {
         if (value === null || value === undefined || value === '') return null;
-
         return (
             <div style={{ gridColumn: fullWidth ? '1 / -1' : 'auto' }}>
-                <label style={{ display: 'block', fontSize: '0.65rem', color: '#444', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    {label}
-                </label>
-                <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.6 }}>
+                <label className="block text-[0.65rem] text-neutral-700 mb-1 uppercase tracking-wide">{label}</label>
+                <div className="text-sm text-white leading-relaxed">
                     {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value}
                 </div>
             </div>
@@ -74,105 +67,53 @@ export default function SubmissionModal({
     const SocialLink = ({ icon: Icon, url, label }: { icon: any, url: string | null, label: string }) => {
         if (!url) return null;
         return (
-            <a
-                href={url.startsWith('http') ? url : `https://${url}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#999', textDecoration: 'none', fontSize: '0.8rem', transition: 'color 0.2s' }}
-            >
-                <Icon size={14} />
-                {label}
+            <a href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-neutral-500 no-underline text-sm hover:text-neutral-300 transition-colors">
+                <Icon size={14} /> {label}
             </a>
         );
     };
 
     return (
-        <div
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                backdropFilter: 'blur(4px)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-            }}
-            onClick={onClose}
-        >
-            <div
-                style={{
-                    backgroundColor: '#0a0a0a',
-                    width: '100%',
-                    maxWidth: '1000px',
-                    maxHeight: '90vh',
-                    borderRadius: '12px',
-                    border: '1px solid #111',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    position: 'relative',
-                }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div style={{ padding: '24px 32px', borderBottom: '1px solid #111', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#050505' }}>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur z-1000 flex items-center justify-center p-5"
+            onClick={onClose}>
+            <div className="bg-neutral-950 w-full max-w-250 max-h-[90vh] rounded-xl border border-neutral-900 flex flex-col overflow-hidden relative"
+                onClick={(e) => e.stopPropagation()}>
+                <div className="px-8 py-6 border-b border-neutral-900 flex justify-between items-start bg-neutral-900/50">
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>{startup.startup_name}</h2>
-                            <span className={`badge ${startup.status === 'Selected' ? 'badge-selected' : 'badge-pending'}`} style={{ fontSize: '0.65rem' }}>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h2 className="text-2xl font-bold tracking-tight text-white">{startup.startup_name}</h2>
+                            <span className={`badge ${startup.status === 'Selected' ? 'badge-selected' : 'badge-pending'} text-[0.65rem]`}>
                                 {startup.status}
                             </span>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#555', fontSize: '0.8rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} /> {startup.founder_names}</div>
-                            {startup.city && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {startup.city}, {startup.country}</div>}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {new Date(startup.created_at).toLocaleDateString()}</div>
+                        <div className="flex flex-wrap gap-4 text-neutral-600 text-sm">
+                            <div className="flex items-center gap-1.5"><User size={14} /> {startup.founder_names}</div>
+                            {startup.city && <div className="flex items-center gap-1.5"><MapPin size={14} /> {startup.city}, {startup.country}</div>}
+                            <div className="flex items-center gap-1.5"><Calendar size={14} /> {new Date(startup.created_at).toLocaleDateString()}</div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <button
-                            onClick={() => onToggleStatus(startup.id, startup.status)}
-                            disabled={isToggling}
-                            style={{
-                                padding: '9px 20px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                letterSpacing: '0.05em',
-                                borderRadius: '8px',
-                                cursor: isToggling ? 'wait' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                transition: 'all 0.2s',
-                                border: startup.status === 'Selected' ? '1px solid #222' : 'none',
-                                background: startup.status === 'Selected' ? 'transparent' : '#fff',
-                                color: startup.status === 'Selected' ? '#999' : '#000',
-                            }}
-                        >
+                    <div className="flex gap-3">
+                        <button onClick={() => onToggleStatus(startup.id, startup.status)} disabled={isToggling}
+                            className={`px-5 py-2 text-xs font-semibold tracking-wide rounded-lg flex items-center gap-1.5 transition-all duration-200 ${isToggling ? 'cursor-wait' : 'cursor-pointer'} ${startup.status === 'Selected'
+                                ? 'bg-transparent border border-neutral-800 text-neutral-500'
+                                : 'bg-white text-black border-none'
+                                }`}>
                             {isToggling ? (
-                                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                                <Loader2 size={14} className="animate-spin" />
                             ) : startup.status === 'Selected' ? (
-                                <> <AlertCircle size={14} /> MARK PENDING </>
+                                <><AlertCircle size={14} /> MARK PENDING</>
                             ) : (
-                                <> <CheckCircle2 size={14} /> SELECT </>
+                                <><CheckCircle2 size={14} /> SELECT</>
                             )}
                         </button>
-                        <button
-                            onClick={onClose}
-                            style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: '4px' }}
-                        >
+                        <button onClick={onClose} className="bg-none border-none text-neutral-800 cursor-pointer p-1">
                             <X size={24} />
                         </button>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div style={{ padding: '32px', overflowY: 'auto', flex: 1 }}>
+                <div className="p-8 overflow-y-auto flex-1">
                     <Section title="Basic Information" icon={Building2}>
                         <DetailItem label="Startup Name" value={startup.startup_name} />
                         <DetailItem label="Founder Name(s)" value={startup.founder_names} />
@@ -183,7 +124,7 @@ export default function SubmissionModal({
                         <DetailItem label="Country" value={startup.country} />
                         <DetailItem label="Year of Incorporation" value={startup.year_of_incorporation} />
                         <DetailItem label="Legal Structure" value={startup.legal_structure} />
-                        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '10px' }}>
+                        <div className="col-span-full flex flex-wrap gap-5 mt-2.5">
                             <SocialLink icon={Globe} url={startup.website} label="Website" />
                             <SocialLink icon={Linkedin} url={startup.linkedin} label="LinkedIn" />
                             <SocialLink icon={Instagram} url={startup.instagram} label="Instagram" />
@@ -269,46 +210,16 @@ export default function SubmissionModal({
                     <Section title="Readiness for Pitch Studio" icon={Rocket}>
                         <DetailItem label="Prepared for Q&A?" value={startup.prepared_for_qa} />
                         <DetailItem label="Why should we shortlist you?" value={startup.why_shortlist} fullWidth />
-                        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '10px' }}>
+                        <div className="col-span-full flex flex-wrap gap-4 mt-2.5">
                             {startup.pitch_deck_link && (
-                                <a
-                                    href={startup.pitch_deck_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        padding: '8px 16px',
-                                        background: 'transparent',
-                                        border: '1px solid #222',
-                                        borderRadius: '6px',
-                                        color: '#999',
-                                        fontSize: '0.75rem',
-                                        textDecoration: 'none',
-                                    }}
-                                >
+                                <a href={startup.pitch_deck_link} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-neutral-800 rounded-md text-neutral-500 text-xs no-underline hover:text-neutral-300 transition-colors">
                                     <ExternalLink size={12} /> View Pitch Deck
                                 </a>
                             )}
                             {startup.financial_projection_link && (
-                                <a
-                                    href={startup.financial_projection_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        padding: '8px 16px',
-                                        background: 'transparent',
-                                        border: '1px solid #222',
-                                        borderRadius: '6px',
-                                        color: '#999',
-                                        fontSize: '0.75rem',
-                                        textDecoration: 'none',
-                                    }}
-                                >
+                                <a href={startup.financial_projection_link} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-neutral-800 rounded-md text-neutral-500 text-xs no-underline hover:text-neutral-300 transition-colors">
                                     <ExternalLink size={12} /> View Financial Projections
                                 </a>
                             )}
@@ -316,8 +227,7 @@ export default function SubmissionModal({
                     </Section>
                 </div>
 
-                {/* Footer */}
-                <div style={{ padding: '14px 32px', borderTop: '1px solid #111', background: '#050505', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#333', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                <div className="px-8 py-3.5 border-t border-neutral-900 bg-neutral-900/50 flex justify-between items-center text-neutral-800 text-[0.7rem] tracking-wide">
                     <div>ID: {startup.id}</div>
                     <div>Applied: {new Date(startup.created_at).toLocaleString()}</div>
                 </div>

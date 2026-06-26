@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Command, LogIn, Loader2, Shield } from 'lucide-react';
+import { LogIn, Loader2, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getSupabase } from '@/lib/supabase';
 
@@ -23,10 +23,7 @@ export default function AdminLoginPage() {
         setIsLoading(true);
         try {
             const sb = getSupabase();
-            const { error } = await sb.auth.signInWithPassword({
-                email,
-                password,
-            });
+            const { error } = await sb.auth.signInWithPassword({ email, password });
 
             if (error) {
                 toast.error(error.message);
@@ -44,127 +41,39 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                background: '#000',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-                position: 'relative',
-            }}
-        >
-            {/* Subtle grid background */}
-            <div style={{
-                position: 'fixed',
-                inset: 0,
-                backgroundImage: 'radial-gradient(circle at 1px 1px, #111 1px, transparent 0)',
-                backgroundSize: '40px 40px',
-                opacity: 0.4,
-            }} />
-
-            <div
-                className="animate-fade-in-up"
+        <div className="min-h-screen bg-black flex items-center justify-center p-5 relative">
+            <div className="fixed inset-0 opacity-40"
                 style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    position: 'relative',
-                    zIndex: 1,
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, #111 1px, transparent 0)',
+                    backgroundSize: '40px 40px',
                 }}
-            >
-                {/* Logo */}
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        marginBottom: '48px',
-                    }}
-                >
-                    {/* <Command size={20} style={{ color: '#fff' }} /> */}
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.2em', color: '#fff' }}>
-                       <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
+            />
+
+            <div className="w-full max-w-100 relative z-1 animate-fade-in-up">
+                <div className="flex items-center justify-center gap-2 mb-12">
+                    <span className="text-sm font-bold tracking-widest text-white">
+                        <img src="/assets/logo.png" alt="Logo" width={100} height={100} />
                     </span>
                 </div>
 
-                {/* Card */}
-                <div
-                    style={{
-                        background: '#0a0a0a',
-                        border: '1px solid #111',
-                        borderRadius: '12px',
-                        padding: '40px 36px',
-                        position: 'relative',
-                        overflow: 'hidden',
-                    }}
-                >
-                    {/* Top accent line */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: '1px',
-                            background: 'linear-gradient(90deg, transparent, #333, transparent)',
-                        }}
-                    />
+                <div className="bg-neutral-950 border border-neutral-900 rounded-xl px-9 py-10 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
 
-                    {/* Header */}
-                    <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                        <div
-                            style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '10px',
-                                background: '#111',
-                                border: '1px solid #222',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                margin: '0 auto 16px',
-                            }}
-                        >
-                            <Shield size={24} style={{ color: '#fff' }} />
+                    <div className="text-center mb-8">
+                        <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-4">
+                            <Shield size={24} className="text-white" />
                         </div>
-                        <h1
-                            style={{
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                marginBottom: '6px',
-                                letterSpacing: '0.1em',
-                                textTransform: 'uppercase',
-                            }}
-                        >
+                        <h1 className="text-sm font-semibold mb-1.5 tracking-wider uppercase">
                             INVESTOR PORTAL
                         </h1>
-                        <p
-                            style={{
-                                color: '#555',
-                                fontSize: '0.8rem',
-                            }}
-                        >
+                        <p className="text-neutral-600 text-sm">
                             Sign in to access the admin dashboard
                         </p>
                     </div>
 
-                    {/* Login Form */}
                     <form onSubmit={handleLogin}>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label
-                                htmlFor="email"
-                                style={{
-                                    display: 'block',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 500,
-                                    color: '#555',
-                                    marginBottom: '6px',
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                }}
-                            >
+                        <div className="mb-4">
+                            <label htmlFor="email" className="block text-[0.7rem] font-medium text-neutral-600 mb-1.5 tracking-wide uppercase">
                                 EMAIL
                             </label>
                             <input
@@ -172,35 +81,14 @@ export default function AdminLoginPage() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 14px',
-                                    background: '#000',
-                                    border: '1px solid #222',
-                                    borderRadius: '8px',
-                                    color: '#fff',
-                                    fontSize: '0.9rem',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                }}
+                                className="w-full px-3.5 py-3 bg-black border border-neutral-800 rounded-lg text-white text-sm outline-none transition-colors focus:border-neutral-600"
                                 placeholder="admin@pitchstudio.com"
                                 required
                             />
                         </div>
 
-                        <div style={{ marginBottom: '28px' }}>
-                            <label
-                                htmlFor="password"
-                                style={{
-                                    display: 'block',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 500,
-                                    color: '#555',
-                                    marginBottom: '6px',
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                }}
-                            >
+                        <div className="mb-7">
+                            <label htmlFor="password" className="block text-[0.7rem] font-medium text-neutral-600 mb-1.5 tracking-wide uppercase">
                                 PASSWORD
                             </label>
                             <input
@@ -208,17 +96,7 @@ export default function AdminLoginPage() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 14px',
-                                    background: '#000',
-                                    border: '1px solid #222',
-                                    borderRadius: '8px',
-                                    color: '#fff',
-                                    fontSize: '0.9rem',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                }}
+                                className="w-full px-3.5 py-3 bg-black border border-neutral-800 rounded-lg text-white text-sm outline-none transition-colors focus:border-neutral-600"
                                 placeholder="••••••••"
                                 required
                             />
@@ -227,28 +105,11 @@ export default function AdminLoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: '#fff',
-                                color: '#000',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                fontSize: '0.8rem',
-                                letterSpacing: '0.08em',
-                                cursor: isLoading ? 'not-allowed' : 'pointer',
-                                opacity: isLoading ? 0.7 : 1,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                transition: 'all 0.2s ease',
-                            }}
+                            className="w-full py-3 bg-white text-black border-none rounded-lg font-semibold text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                    <Loader2 size={16} className="animate-spin" />
                                     SIGNING IN...
                                 </>
                             ) : (

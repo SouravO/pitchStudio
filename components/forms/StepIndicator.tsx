@@ -11,108 +11,53 @@ interface StepIndicatorProps {
 
 export default function StepIndicator({ currentStep, totalSteps = 10 }: StepIndicatorProps) {
     return (
-        <div style={{ marginBottom: '40px' }}>
-            {/* Progress bar */}
-            <div
-                style={{
-                    width: '100%',
-                    height: '4px',
-                    background: 'var(--border-color)',
-                    borderRadius: '2px',
-                    marginBottom: '20px',
-                    overflow: 'hidden',
-                }}
-            >
+        <div className="mb-10">
+            <div className="w-full h-1 bg-neutral-900 rounded overflow-hidden mb-5">
                 <div
+                    className="h-full rounded transition-all duration-400"
                     style={{
                         width: `${(currentStep / totalSteps) * 100}%`,
-                        height: '100%',
-                        background: 'var(--gradient-brand)',
-                        borderRadius: '2px',
-                        transition: 'width 0.4s ease',
+                        background: 'linear-gradient(135deg, #ffffff, #cccccc)',
                     }}
                 />
             </div>
 
-            {/* Step info */}
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
+            <div className="flex justify-between items-center">
                 <div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            marginBottom: '4px',
-                        }}
-                    >
-                        <span style={{ fontSize: '1.4rem' }}>
-                            {FORM_SECTIONS[currentStep - 1]?.icon}
-                        </span>
-                        <h2
-                            style={{
-                                fontSize: '1.3rem',
-                                fontWeight: 700,
-                                letterSpacing: '-0.01em',
-                            }}
-                        >
+                    <div className="flex items-center gap-2.5 mb-1">
+                        <span className="text-2xl">{FORM_SECTIONS[currentStep - 1]?.icon}</span>
+                        <h2 className="text-xl font-bold tracking-tight">
                             {FORM_SECTIONS[currentStep - 1]?.title}
                         </h2>
                     </div>
-                    <p
-                        style={{
-                            fontSize: '0.9rem',
-                            color: 'var(--foreground-muted)',
-                        }}
-                    >
+                    <p className="text-sm text-neutral-500">
                         {FORM_SECTIONS[currentStep - 1]?.subtitle}
                     </p>
                 </div>
 
-                <div
-                    style={{
-                        fontSize: '0.85rem',
-                        color: 'var(--foreground-dimmed)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                    }}
-                >
-                    {/* Completed steps indicator */}
-                    <div style={{ display: 'flex', gap: '4px' }}>
+                <div className="text-sm text-neutral-600 flex items-center gap-2">
+                    <div className="flex gap-1">
                         {Array.from({ length: totalSteps }).map((_, i) => (
                             <div
                                 key={i}
+                                className="flex items-center justify-center transition-all duration-300"
                                 style={{
                                     width: i + 1 === currentStep ? '20px' : '8px',
                                     height: '8px',
                                     borderRadius: '4px',
                                     background:
                                         i + 1 < currentStep
-                                            ? 'var(--status-selected)'
+                                            ? '#2dd4a0'
                                             : i + 1 === currentStep
-                                                ? 'var(--brand-primary)'
-                                                : 'var(--border-color)',
-                                    transition: 'all 0.3s ease',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                                ? '#ffffff'
+                                                : '#111111',
                                 }}
                             >
-                                {i + 1 < currentStep && (
-                                    <Check size={6} style={{ color: 'white' }} />
-                                )}
+                                {i + 1 < currentStep && <Check size={6} className="text-white" />}
                             </div>
                         ))}
                     </div>
-                    <span>
-                        {currentStep}/{totalSteps}
-                    </span>
+                    <span>{currentStep}/{totalSteps}</span>
                 </div>
             </div>
         </div>

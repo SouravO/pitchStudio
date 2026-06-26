@@ -47,7 +47,6 @@ export default function SelectedPage() {
         fetchStartups();
     }, [fetchStartups]);
 
-    // Debounce search input by 300ms
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), 300);
         return () => clearTimeout(timer);
@@ -63,7 +62,6 @@ export default function SelectedPage() {
         setExporting(true);
         try {
             const { data: allStartups } = await getAllSelectedStartups();
-
             if (!allStartups || allStartups.length === 0) return;
 
             const headers = [
@@ -127,34 +125,13 @@ export default function SelectedPage() {
 
     return (
         <div className="animate-fade-in">
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '28px',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                }}
-            >
+            <div className="flex justify-between items-center mb-7 flex-wrap gap-3">
                 <div>
-                    <h1
-                        style={{
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            marginBottom: '4px',
-                            letterSpacing: '0.15em',
-                            textTransform: 'uppercase',
-                            color: '#fff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                        }}
-                    >
-                        <Star size={14} style={{ color: '#2dd4a0' }} />
+                    <h1 className="text-sm font-semibold mb-1 tracking-wider uppercase text-white flex items-center gap-2">
+                        <Star size={14} className="text-emerald-400" />
                         SELECTED STARTUPS
                     </h1>
-                    <p style={{ color: '#333', fontSize: '0.7rem', letterSpacing: '0.05em' }}>
+                    <p className="text-neutral-800 text-[0.7rem] tracking-wide">
                         {totalCount} selected startup{totalCount !== 1 ? 's' : ''}
                     </p>
                 </div>
@@ -162,70 +139,26 @@ export default function SelectedPage() {
                     <button
                         onClick={handleExportCSV}
                         disabled={exporting}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 16px',
-                            background: 'transparent',
-                            border: '1px solid #222',
-                            borderRadius: '6px',
-                            color: '#999',
-                            fontSize: '0.75rem',
-                            cursor: exporting ? 'not-allowed' : 'pointer',
-                            opacity: exporting ? 0.5 : 1,
-                            letterSpacing: '0.05em',
-                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-transparent border border-neutral-800 rounded-md text-neutral-500 text-xs tracking-wide disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:text-neutral-300 transition-colors"
                     >
-                        {exporting ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={12} />}
+                        {exporting ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
                         {exporting ? 'EXPORTING...' : 'EXPORT CSV'}
                     </button>
                 )}
             </div>
 
-            {/* Filters */}
-            <div
-                style={{
-                    padding: '14px 18px',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    gap: '10px',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    background: '#0a0a0a',
-                    border: '1px solid #111',
-                    borderRadius: '10px',
-                }}
-            >
-                <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
-                    <Search
-                        size={14}
-                        style={{
-                            position: 'absolute',
-                            left: '12px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: '#333',
-                        }}
-                    />
+            <div className="p-3.5 mb-5 flex gap-2.5 flex-wrap items-center bg-neutral-950 border border-neutral-900 rounded-xl">
+                <div className="flex-1 min-w-50 relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-800" />
                     <input
                         type="text"
                         placeholder="Search selected startups..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 14px 10px 34px',
-                            background: '#000',
-                            border: '1px solid #222',
-                            borderRadius: '8px',
-                            color: '#fff',
-                            fontSize: '0.8rem',
-                            outline: 'none',
-                        }}
+                        className="w-full px-3.5 py-2.5 pl-9 bg-black border border-neutral-800 rounded-lg text-white text-sm outline-none"
                     />
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className="flex gap-2 items-center">
                     <select
                         value={`${sortBy}_${sortOrder}`}
                         onChange={(e) => {
@@ -234,16 +167,7 @@ export default function SelectedPage() {
                             setSortBy(val.slice(0, lastUnderscore));
                             setSortOrder(val.slice(lastUnderscore + 1) as 'asc' | 'desc');
                         }}
-                        style={{
-                            padding: '10px 12px',
-                            background: '#000',
-                            border: '1px solid #222',
-                            borderRadius: '8px',
-                            color: '#999',
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                            outline: 'none',
-                        }}
+                        className="px-3 py-2.5 bg-black border border-neutral-800 rounded-lg text-neutral-500 text-sm cursor-pointer outline-none"
                     >
                         <option value="created_at_desc">Newest First</option>
                         <option value="created_at_asc">Oldest First</option>
@@ -252,18 +176,17 @@ export default function SelectedPage() {
                 </div>
             </div>
 
-            {/* Table */}
-            <div style={{ background: '#0a0a0a', border: '1px solid #111', borderRadius: '10px', overflow: 'hidden' }}>
+            <div className="bg-neutral-950 border border-neutral-900 rounded-xl overflow-hidden">
                 {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-                        <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#fff' }} />
+                    <div className="flex justify-center py-15">
+                        <Loader2 size={24} className="animate-spin text-white" />
                     </div>
                 ) : startups.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#333', fontSize: '0.85rem' }}>
+                    <div className="text-center py-15 text-neutral-800 text-sm">
                         {search ? 'No matches found' : 'No startups have been selected yet'}
                     </div>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
+                    <div className="overflow-x-auto">
                         <table className="admin-table">
                             <thead>
                                 <tr>
@@ -280,15 +203,12 @@ export default function SelectedPage() {
                                 {startups.map((startup) => (
                                     <tr key={startup.id}>
                                         <td>
-                                            <Link
-                                                href={`/admin/submissions/${startup.id}`}
-                                                style={{ textDecoration: 'none', color: '#fff', fontWeight: 500 }}
-                                            >
+                                            <Link href={`/admin/submissions/${startup.id}`} className="no-underline text-white font-medium">
                                                 {startup.startup_name}
                                             </Link>
                                         </td>
                                         <td>{startup.founder_names}</td>
-                                        <td style={{ fontSize: '0.85rem' }}>{startup.email}</td>
+                                        <td className="text-sm">{startup.email}</td>
                                         <td>{startup.city || '—'}</td>
                                         <td>{startup.current_stage || '—'}</td>
                                         <td>
@@ -296,11 +216,9 @@ export default function SelectedPage() {
                                                 ? `₹${startup.current_monthly_revenue.toLocaleString()}`
                                                 : '—'}
                                         </td>
-                                        <td style={{ whiteSpace: 'nowrap' }}>
+                                        <td className="whitespace-nowrap">
                                             {startup.created_at ? new Date(startup.created_at).toLocaleDateString('en-IN', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric',
+                                                day: 'numeric', month: 'short', year: 'numeric',
                                             }) : '—'}
                                         </td>
                                     </tr>
@@ -311,46 +229,22 @@ export default function SelectedPage() {
                 )}
 
                 {totalPages > 1 && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '14px 20px',
-                            borderTop: '1px solid #111',
-                        }}
-                    >
-                        <span style={{ fontSize: '0.75rem', color: '#333' }}>
+                    <div className="flex justify-between items-center px-5 py-3.5 border-t border-neutral-900">
+                        <span className="text-xs text-neutral-800">
                             Page {page} of {totalPages}
                         </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
+                        <div className="flex gap-1.5">
                             <button
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                style={{
-                                    padding: '6px 10px',
-                                    background: 'transparent',
-                                    border: '1px solid #222',
-                                    borderRadius: '6px',
-                                    color: '#fff',
-                                    cursor: page === 1 ? 'not-allowed' : 'pointer',
-                                    opacity: page === 1 ? 0.3 : 1,
-                                }}
+                                className="px-2.5 py-1.5 bg-transparent border border-neutral-800 rounded-md text-white text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 <ChevronLeft size={14} />
                             </button>
                             <button
                                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
-                                style={{
-                                    padding: '6px 10px',
-                                    background: 'transparent',
-                                    border: '1px solid #222',
-                                    borderRadius: '6px',
-                                    color: '#fff',
-                                    cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                                    opacity: page === totalPages ? 0.3 : 1,
-                                }}
+                                className="px-2.5 py-1.5 bg-transparent border border-neutral-800 rounded-md text-white text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 <ChevronRight size={14} />
                             </button>

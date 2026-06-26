@@ -15,49 +15,28 @@ interface FormTextareaProps {
 }
 
 export default function FormTextarea({
-    label,
-    name,
-    value,
-    onChange,
-    placeholder,
-    required = false,
-    error,
-    rows = 4,
-    maxLength,
+    label, name, value, onChange, placeholder,
+    required = false, error, rows = 4, maxLength,
 }: FormTextareaProps) {
     const currentLength = (value || '').length;
 
     return (
-        <div style={{ marginBottom: '16px' }}>
+        <div className="mb-4">
             <label htmlFor={name} className="form-label">
                 {label}
-                {required && (
-                    <span style={{ color: 'var(--status-error)', marginLeft: '4px' }}>*</span>
-                )}
+                {required && <span className="text-red-500 ml-1">*</span>}
             </label>
             <textarea
-                id={name}
-                name={name}
-                value={value ?? ''}
-                onChange={onChange}
-                placeholder={placeholder}
-                required={required}
-                rows={rows}
-                maxLength={maxLength}
-                className={`form-input ${error ? 'error' : ''}`}
-                style={{ resize: 'vertical', minHeight: '100px' }}
+                id={name} name={name}
+                value={value ?? ''} onChange={onChange}
+                placeholder={placeholder} required={required}
+                rows={rows} maxLength={maxLength}
+                className={`form-input resize-y min-h-25 ${error ? 'error' : ''}`}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="flex justify-between items-center">
                 {error && <div className="form-error">{error}</div>}
                 {maxLength && (
-                    <div
-                        style={{
-                            fontSize: '0.75rem',
-                            color: currentLength > maxLength * 0.9 ? 'var(--status-error)' : 'var(--foreground-dimmed)',
-                            marginLeft: 'auto',
-                            marginTop: '4px',
-                        }}
-                    >
+                    <div className={`text-xs ml-auto mt-1 ${currentLength > maxLength * 0.9 ? 'text-red-500' : 'text-neutral-600'}`}>
                         {currentLength}/{maxLength}
                     </div>
                 )}
