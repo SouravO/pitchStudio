@@ -104,11 +104,11 @@ export default function FlowingParticles({ sectionRefs }: FlowingParticlesProps)
             y: point.y,
             tx: point.x,
             ty: point.y,
-            r: 1.5 + Math.random() * 1.5,
+            r: 1 + Math.random() * 1,
             alpha: 0,
-            baseAlpha: 0.7 + Math.random() * 0.3,
+            baseAlpha: 0.3 + Math.random() * 0.2, // More subtle
             hue,
-            color: `hsl(${hue}, ${65 + Math.random() * 25}%, ${65 + Math.random() * 30}%)`,
+            color: `hsl(${hue}, ${70 + Math.random() * 20}%, ${60 + Math.random() * 25}%)`,
           };
         });
         
@@ -116,7 +116,7 @@ export default function FlowingParticles({ sectionRefs }: FlowingParticlesProps)
         particlesRef.current.forEach((p, i) => {
           setTimeout(() => {
             p.alpha = p.baseAlpha;
-          }, i * 0.5);
+          }, i * 0.3);
         });
       }
     }
@@ -188,26 +188,26 @@ export default function FlowingParticles({ sectionRefs }: FlowingParticlesProps)
           const nextPoint = nextFormation[i % nextFormation.length];
           
           if (transitionProgress < 0.5) {
-            // Burst outward
+            // Burst outward - smoother
             const burstProgress = transitionProgress / 0.5;
-            const burstEase = burstProgress * (2 - burstProgress);
+            const burstEase = burstProgress * burstProgress * (3 - 2 * burstProgress); // Smoother ease
             const angle = (i / particlesRef.current.length) * Math.PI * 2;
-            const burstDist = 200 * burstEase;
+            const burstDist = 120 * burstEase; // Reduced distance
             
             particle.x = targetPoint.x + Math.cos(angle) * burstDist;
             particle.y = targetPoint.y + Math.sin(angle) * burstDist;
-            particle.alpha = particle.baseAlpha * (1 - burstEase * 0.7);
+            particle.alpha = particle.baseAlpha * (1 - burstEase * 0.6);
             
           } else {
-            // Join at next section
+            // Join at next section - smoother
             const joinProgress = (transitionProgress - 0.5) / 0.5;
             const joinEase = joinProgress * joinProgress * (3 - 2 * joinProgress);
             
-            particle.x = targetPoint.x + Math.cos((i / particlesRef.current.length) * Math.PI * 2) * 200 * (1 - joinEase) 
+            particle.x = targetPoint.x + Math.cos((i / particlesRef.current.length) * Math.PI * 2) * 120 * (1 - joinEase) 
                          + (nextPoint.x - targetPoint.x) * joinEase;
-            particle.y = targetPoint.y + Math.sin((i / particlesRef.current.length) * Math.PI * 2) * 200 * (1 - joinEase)
+            particle.y = targetPoint.y + Math.sin((i / particlesRef.current.length) * Math.PI * 2) * 120 * (1 - joinEase)
                          + (nextPoint.y - targetPoint.y) * joinEase;
-            particle.alpha = particle.baseAlpha * (0.3 + joinEase * 0.7);
+            particle.alpha = particle.baseAlpha * (0.4 + joinEase * 0.6);
           }
         } else {
           particle.x = targetPoint.x;
@@ -236,11 +236,13 @@ export default function FlowingParticles({ sectionRefs }: FlowingParticlesProps)
         ctx.globalAlpha = particle.alpha;
         ctx.fillStyle = particle.color;
         
-        // Soft glow effect
-        ctx.shadowBlur = particle.r * 2;
+        // Subtle glow
+        ctx.shadowBlur = particle.r * 3;
         ctx.shadowColor = particle.color;
         
-        ctx.fillRect(particle.x - particle.r, particle.y - particle.r, particle.r * 2, particle.r * 2);
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+        ctx.fill();
       });
       
       ctx.shadowBlur = 0;
