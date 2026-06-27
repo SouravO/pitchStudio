@@ -49,12 +49,12 @@ const WHITE_SLIDE_END     = 1;
 const WHITE_CONTENT_END   = 3;
 const DARK_SLIDE_START    = 3;
 const DARK_SLIDE_END      = 4;
-const DARK_CONTENT_END    = 7.5;
+const DARK_CONTENT_END    = 11.5;
 const CONTACT_SLIDE_START = -1;
 const CONTACT_SLIDE_END   = 0;
 const CONTACT_CONTENT_END = 3;
 const CONTACT_CONTENT_LEAD = 1.2;
-const TOP_TOTAL_VH         = 750;
+const TOP_TOTAL_VH         = 1150;
 const CONTACT_TOTAL_VH     = 300;
 
 // ─── Root ────────────────────────────────────────────────────────────────────
@@ -818,7 +818,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
 
   const words = "Unleash your AI application's full potential".split(' ');
 
-  const cardStarts = [0.6, 0.95, 1.4, 1.8, 2.2, 2.6, 3.0];
+  const cardStarts = [0.6, 1.3, 2.2, 3.1, 4.0, 4.9, 5.8];
 
   const getCardAnim = (idx: number) => {
     const start = cardStarts[idx] ?? 0.6 + idx * 0.4;
@@ -836,16 +836,16 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
         background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)',
       }} />
 
-      <div className="relative z-10 w-full h-full flex flex-col items-center px-5 pt-12 pb-6 overflow-hidden">
+      <div className="relative z-10 w-full h-full flex flex-col items-center px-5 pt-6 pb-4 overflow-hidden">
         <div
-          className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50"
+          className="flex items-center gap-2 mb-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 flex-shrink-0"
           style={{ opacity: badgeOpacity, transform: `translateY(${badgeY}px)`, willChange: 'opacity, transform' }}
         >
           <span style={{ color: '#FF8A3D' }}>✦</span> AI potential
         </div>
 
         <h2
-          className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-8 max-w-2xl"
+          className="text-[#EDEAFF] text-2xl md:text-3xl lg:text-[2.1rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl flex-shrink-0"
           style={{
             transform: `scale(${headingScale})`,
             opacity: headingOpacity,
@@ -869,34 +869,34 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
           })}
         </h2>
 
-        <div className="w-full max-w-6xl flex flex-col gap-3">
-          <div className="grid grid-cols-5 gap-3" style={{ height: 210 }}>
-            <div className="col-span-3" style={{ opacity: getCardAnim(0).opacity, transform: `translateY(${getCardAnim(0).translateY}px) scale(${getCardAnim(0).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="Low-latency global network" desc="Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms." accentColor="rgba(255,138,61,0.18)" glowColor="rgba(255,138,61,0.07)" visual="globe" height="100%" videoSrc="/vid1.mp4" />
+        <div className="w-full max-w-7xl flex-1 flex flex-col gap-3 min-h-0">
+          <div className="grid grid-cols-5 gap-3" style={{ flex: 3, minHeight: 0 }}>
+            <div className="col-span-3 h-full" style={{ opacity: getCardAnim(0).opacity, transform: `translateY(${getCardAnim(0).translateY}px) scale(${getCardAnim(0).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Low-latency global network" desc="Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms." accentColor="rgba(255,138,61,0.18)" glowColor="rgba(255,138,61,0.07)" visual="globe" height="100%" videoSrc="/vid1.mp4" details={["160+ edge locations worldwide", "30 ms average global latency", "Automatic traffic routing"]} />
             </div>
-            <div className="col-span-2" style={{ opacity: getCardAnim(1).opacity, transform: `translateY(${getCardAnim(1).translateY}px) scale(${getCardAnim(1).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="Single end-point for all AI tasks" desc="Automated infrastructure management for AI applications with real-time inference." accentColor="rgba(124,92,255,0.18)" glowColor="rgba(124,92,255,0.07)" visual="chip" height="100%" videoSrc="/vid2.mp4" />
+            <div className="col-span-2 h-full" style={{ opacity: getCardAnim(1).opacity, transform: `translateY(${getCardAnim(1).translateY}px) scale(${getCardAnim(1).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Single end-point for all AI tasks" desc="Automated infrastructure management for AI applications with real-time inference." accentColor="rgba(124,92,255,0.18)" glowColor="rgba(124,92,255,0.07)" visual="chip" height="100%" videoSrc="/vid2.mp4" details={["One unified API", "Real-time inference"]} />
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-3" style={{ height: 175 }}>
-            <div className="col-span-2" style={{ opacity: getCardAnim(2).opacity, transform: `translateY(${getCardAnim(2).translateY}px) scale(${getCardAnim(2).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="Data privacy and security" desc="Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models." accentColor="rgba(232,69,69,0.14)" glowColor="rgba(232,69,69,0.06)" visual="lock" height="100%" videoSrc="/vid3.mp4" />
+          <div className="grid grid-cols-5 gap-3" style={{ flex: 2.6, minHeight: 0 }}>
+            <div className="col-span-2 h-full" style={{ opacity: getCardAnim(2).opacity, transform: `translateY(${getCardAnim(2).translateY}px) scale(${getCardAnim(2).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Data privacy and security" desc="Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models." accentColor="rgba(232,69,69,0.14)" glowColor="rgba(232,69,69,0.06)" visual="lock" height="100%" videoSrc="/vid3.mp4" details={["End-to-end encryption", "Compliant data handling"]} />
             </div>
-            <div className="col-span-2" style={{ opacity: getCardAnim(3).opacity, transform: `translateY(${getCardAnim(3).translateY}px) scale(${getCardAnim(3).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="Unlimited object storage" desc="Use scalable S3-compatible cloud storage that grows with your needs." accentColor="rgba(61,200,255,0.14)" glowColor="rgba(61,200,255,0.06)" visual="storage" height="100%" videoSrc="/vid4.mp4" />
+            <div className="col-span-2 h-full" style={{ opacity: getCardAnim(3).opacity, transform: `translateY(${getCardAnim(3).translateY}px) scale(${getCardAnim(3).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Unlimited object storage" desc="Use scalable S3-compatible cloud storage that grows with your needs." accentColor="rgba(61,200,255,0.14)" glowColor="rgba(61,200,255,0.06)" visual="storage" height="100%" videoSrc="/vid4.mp4" details={["S3-compatible API", "Pay-as-you-grow pricing"]} />
             </div>
-            <div className="col-span-1" style={{ opacity: getCardAnim(4).opacity, transform: `translateY(${getCardAnim(4).translateY}px) scale(${getCardAnim(4).scale})`, willChange: 'transform, opacity' }}>
+            <div className="col-span-1 h-full" style={{ opacity: getCardAnim(4).opacity, transform: `translateY(${getCardAnim(4).translateY}px) scale(${getCardAnim(4).scale})`, willChange: 'transform, opacity' }}>
               <DarkCard title="Pre-trained ML models" desc="Access Gcore ML Model Hub or bring your own." accentColor="rgba(255,200,61,0.12)" glowColor="rgba(255,200,61,0.05)" visual="model" height="100%" compact videoSrc="/vid5.mp4" />
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-3" style={{ height: 160 }}>
-            <div className="col-span-3" style={{ opacity: getCardAnim(5).opacity, transform: `translateY(${getCardAnim(5).translateY}px) scale(${getCardAnim(5).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="Model autoscaling" desc="Set up autoscaling to handle load spikes. Use and pay only for what you need." accentColor="rgba(80,255,160,0.10)" glowColor="rgba(80,255,160,0.05)" visual="scale" height="100%" videoSrc="/vid6.mp4" />
+          <div className="grid grid-cols-5 gap-3" style={{ flex: 2.4, minHeight: 0 }}>
+            <div className="col-span-3 h-full" style={{ opacity: getCardAnim(5).opacity, transform: `translateY(${getCardAnim(5).translateY}px) scale(${getCardAnim(5).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Model autoscaling" desc="Set up autoscaling to handle load spikes. Use and pay only for what you need." accentColor="rgba(80,255,160,0.10)" glowColor="rgba(80,255,160,0.05)" visual="scale" height="100%" videoSrc="/vid6.mp4" details={["Scales automatically with demand", "Pay only for what you use"]} />
             </div>
-            <div className="col-span-2" style={{ opacity: getCardAnim(6).opacity, transform: `translateY(${getCardAnim(6).translateY}px) scale(${getCardAnim(6).scale})`, willChange: 'transform, opacity' }}>
-              <DarkCard title="NVIDIA L40S GPUs" desc="Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput." accentColor="rgba(100,220,60,0.10)" glowColor="rgba(100,220,60,0.04)" visual="gpu" height="100%" videoSrc="/vid1.mp4" />
+            <div className="col-span-2 h-full" style={{ opacity: getCardAnim(6).opacity, transform: `translateY(${getCardAnim(6).translateY}px) scale(${getCardAnim(6).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="NVIDIA L40S GPUs" desc="Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput." accentColor="rgba(100,220,60,0.10)" glowColor="rgba(100,220,60,0.04)" visual="gpu" height="100%" videoSrc="/vid1.mp4" details={["Maximum throughput per request", "Optimized for inference workloads"]} />
             </div>
           </div>
         </div>
@@ -906,9 +906,9 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
 }
 
 function DarkCard({
-  title, desc, accentColor, glowColor, visual, height, compact, videoSrc,
+  title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details,
 }: {
-  title: string; desc: string; accentColor: string; glowColor: string; visual: string; height?: string; compact?: boolean; videoSrc?: string;
+  title: string; desc: string; accentColor: string; glowColor: string; visual: string; height?: string; compact?: boolean; videoSrc?: string; details?: string[];
 }) {
   return (
     <div
@@ -929,12 +929,22 @@ function DarkCard({
       <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: 0.35 }}>
         <CardVisual visual={visual} compact={compact} />
       </div>
-      <div className="relative z-10 p-4 flex flex-col gap-1.5" style={{ maxWidth: compact ? '100%' : '68%' }}>
-        <h3 className={`text-[#EDEAFF] font-semibold leading-snug ${compact ? 'text-xs' : 'text-sm lg:text-[0.95rem]'}`}>
+      <div className="relative z-10 p-5 flex flex-col gap-2" style={{ maxWidth: compact ? '100%' : '72%' }}>
+        <h3 className={`text-[#EDEAFF] font-semibold leading-snug ${compact ? 'text-sm' : 'text-base lg:text-lg'}`}>
           {title}
         </h3>
         {!compact && (
-          <p className="text-[#EDEAFF]/40 text-xs leading-relaxed">{desc}</p>
+          <p className="text-[#EDEAFF]/45 text-sm leading-relaxed">{desc}</p>
+        )}
+        {!compact && details && details.length > 0 && (
+          <ul className="flex flex-col gap-1 mt-2">
+            {details.map((d) => (
+              <li key={d} className="text-[#EDEAFF]/35 text-xs flex items-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-[#EDEAFF]/40 flex-shrink-0" />
+                {d}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
@@ -942,7 +952,7 @@ function DarkCard({
 }
 
 function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) {
-  const size = compact ? 80 : 110;
+  const size = compact ? 90 : 130;
 
   switch (visual) {
     case 'globe':
@@ -1064,7 +1074,7 @@ function GlobeSectionContent() {
   const words = "A truly global network for lightning-fast inference".split(' ');
 
   return (
-    <div ref={sectionRef} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-20">
+    <div ref={sectionRef} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-24 lg:py-28">
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
         {Array.from({ length: 40 }).map((_, i) => {
           const top = (i * 37) % 100;
@@ -1081,7 +1091,7 @@ function GlobeSectionContent() {
       </div>
 
       <div className="relative z-10 w-full flex flex-col items-center px-5 overflow-hidden">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-4 md:gap-5">
           <div
             className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(16px)', willChange: 'opacity, transform' }}
@@ -1090,7 +1100,7 @@ function GlobeSectionContent() {
           </div>
 
           <h2
-            className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl transition-all duration-700 ease-out"
+            className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight max-w-2xl transition-all duration-700 ease-out"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.3)', transitionDelay: '80ms', willChange: 'transform, opacity' }}
           >
             {words.map((word, i) => (
@@ -1113,10 +1123,17 @@ function GlobeSectionContent() {
         </div>
 
         <div
-          className="w-full max-w-3xl -mt-4 transition-all duration-700 ease-out"
+          className="w-full max-w-2xl xl:max-w-[860px] mt-6 md:mt-8 transition-all duration-700 ease-out"
           style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px) scale(1)' : 'translateY(50px) scale(0.92)', transitionDelay: '550ms', willChange: 'transform, opacity' }}
         >
-          <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto block" />
+          <video
+            src="/video2.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto max-h-[62vh] object-contain block rounded-2xl"
+          />
         </div>
       </div>
     </div>
