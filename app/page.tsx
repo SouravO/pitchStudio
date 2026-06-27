@@ -50,19 +50,19 @@ const NODES: NodeCfg[] = [
 ];
 
 const DARK_CARDS: CardData[] = [
-  { title: 'Low-latency global network',      desc: 'Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms.',  accentColor: 'rgba(255,138,61,0.18)',  glowColor: 'rgba(255,138,61,0.07)',  visual: 'globe',   videoSrc: '/vid1.mp4', details: ['160+ edge locations worldwide', '30 ms average global latency', 'Automatic traffic routing'], colSpan: 3 },
-  { title: 'Single end-point for all AI tasks', desc: 'Automated infrastructure management for AI applications with real-time inference.',                          accentColor: 'rgba(124,92,255,0.18)',  glowColor: 'rgba(124,92,255,0.07)',  visual: 'chip',    videoSrc: '/vid2.mp4', details: ['One unified API', 'Real-time inference'], colSpan: 2 },
-  { title: 'Data privacy and security',       desc: 'Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models.',                 accentColor: 'rgba(232,69,69,0.14)',   glowColor: 'rgba(232,69,69,0.06)',   visual: 'lock',    videoSrc: '/vid3.mp4', details: ['End-to-end encryption', 'Compliant data handling'], colSpan: 2 },
-  { title: 'Unlimited object storage',        desc: 'Use scalable S3-compatible cloud storage that grows with your needs.',                                         accentColor: 'rgba(61,200,255,0.14)',  glowColor: 'rgba(61,200,255,0.06)',  visual: 'storage', videoSrc: '/vid4.mp4', details: ['S3-compatible API', 'Pay-as-you-grow pricing'], colSpan: 2 },
-  { title: 'Pre-trained ML models',           desc: 'Access Gcore ML Model Hub or bring your own.',                                                                 accentColor: 'rgba(255,200,61,0.12)', glowColor: 'rgba(255,200,61,0.05)', visual: 'model',   videoSrc: '/vid5.mp4', compact: true, colSpan: 1 },
-  { title: 'Model autoscaling',               desc: 'Set up autoscaling to handle load spikes. Use and pay only for what you need.',                               accentColor: 'rgba(80,255,160,0.10)', glowColor: 'rgba(80,255,160,0.05)', visual: 'scale',   videoSrc: '/vid6.mp4', details: ['Scales automatically with demand', 'Pay only for what you use'], colSpan: 3 },
-  { title: 'NVIDIA L40S GPUs',                desc: 'Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput.',                                       accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu',     videoSrc: '/vid1.mp4', details: ['Maximum throughput per request', 'Optimized for inference workloads'], colSpan: 2 },
+  { title: 'A network spanning 160+ markets',  desc: 'Connect with active investors and operators across 160+ regions, with deal flow moving in an average of 30 minutes from intro to first call.', accentColor: 'rgba(255,138,61,0.18)',  glowColor: 'rgba(255,138,61,0.07)',  visual: 'globe',   videoSrc: '/vid1.mp4', details: ['160+ regional investor networks', '30-minute average response time', 'Automatic founder-investor matching'], colSpan: 3 },
+  { title: 'One dashboard for every raise',     desc: 'Manage your cap table, investor updates, and fundraising pipeline from a single, unified workspace.',                                          accentColor: 'rgba(124,92,255,0.18)',  glowColor: 'rgba(124,92,255,0.07)',  visual: 'chip',    videoSrc: '/vid2.mp4', details: ['One unified workspace', 'Live pipeline tracking'], colSpan: 2 },
+  { title: 'Confidential by default',          desc: 'Share financials and data rooms with bank-grade encryption, visible only to the people you invite.',                                         accentColor: 'rgba(232,69,69,0.14)',   glowColor: 'rgba(232,69,69,0.06)',   visual: 'lock',    videoSrc: '/vid3.mp4', details: ['End-to-end encrypted data rooms', 'Granular access controls'], colSpan: 2 },
+  { title: 'Unlimited document storage',       desc: 'Keep every pitch deck, term sheet, and cap table version in one secure data room that scales with your company.',                            accentColor: 'rgba(61,200,255,0.14)',  glowColor: 'rgba(61,200,255,0.06)',  visual: 'storage', videoSrc: '/vid4.mp4', details: ['Version history for every document', 'Pay only as you grow'], colSpan: 2 },
+  { title: 'Curated investor matches',          desc: 'Get matched with investors from our network or bring your own list.',                                                                       accentColor: 'rgba(255,200,61,0.12)', glowColor: 'rgba(255,200,61,0.05)', visual: 'model',   videoSrc: '/vid5.mp4', compact: true, colSpan: 1 },
+  { title: 'Built to scale with your raise',    desc: 'Run a seed round or a Series C from the same platform. Add seats and tools as your team and round size grow.',                               accentColor: 'rgba(80,255,160,0.10)', glowColor: 'rgba(80,255,160,0.05)', visual: 'scale',   videoSrc: '/vid6.mp4', details: ['Scales from pre-seed to growth stage', 'Pay only for what you use'], colSpan: 3 },
+  { title: 'Real-time diligence analytics',     desc: 'Track investor engagement on your data room in real time, down to the slide and the minute.',                                               accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu',     videoSrc: '/vid1.mp4', details: ['Slide-by-slide engagement tracking', 'Built for fast-moving diligence'], colSpan: 2 },
 ];
 
 const FEATURES = [
-  { icon: '●',  color: '#FF8A3D', label: 'Text generation',    tag: 'Streaming output'   },
-  { icon: '◎',  color: '#E84545', label: 'Speech recognition', tag: 'Multi-language'     },
-  { icon: 'S.', color: '#7C5CFF', label: 'Image generation',   tag: 'Sub-second latency' },
+  { icon: '●',  color: '#FF8A3D', label: 'Investor updates',     tag: 'Sent automatically' },
+  { icon: '◎',  color: '#E84545', label: 'Data room access',     tag: 'Multi-investor'      },
+  { icon: 'S.', color: '#7C5CFF', label: 'Term sheet review',    tag: 'Real-time turnaround' },
 ];
 
 // Scroll budget constants
@@ -307,7 +307,7 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
       <g style={{ opacity: stage >= 4 ? 1 : 0, transition: 'opacity 500ms ease-out' }}>
         <rect x={CHIP_X - CHIP_HALF} y={CHIP_Y - CHIP_HALF} width={CHIP_HALF * 2} height={CHIP_HALF * 2} rx={18} fill="#13121A" stroke="#7C5CFF" strokeOpacity={0.75} strokeWidth={2} />
         <rect x={CHIP_X - CHIP_HALF} y={CHIP_Y - CHIP_HALF} width={CHIP_HALF * 2} height={CHIP_HALF * 2} rx={18} fill={`url(#pulseGlow${prefix})`} opacity={0.12} />
-        <text x={CHIP_X} y={CHIP_Y + 7} textAnchor="middle" fontSize={24} fontWeight={700} fill="#EDEAFF" style={{ fontFamily: 'system-ui, sans-serif', letterSpacing: '0.01em' }}>AI</text>
+        <text x={CHIP_X} y={CHIP_Y + 7} textAnchor="middle" fontSize={24} fontWeight={700} fill="#EDEAFF" style={{ fontFamily: 'system-ui, sans-serif', letterSpacing: '0.01em' }}>VC</text>
       </g>
     </>
   );
@@ -352,7 +352,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
         <svg viewBox="0 0 120 120" width={size} height={size} fill="none">
           <rect x="32" y="32" width="56" height="56" rx="12" stroke="#7C5CFF" strokeOpacity={0.45} strokeWidth={1.2} />
           <rect x="44" y="44" width="32" height="32" rx="6" fill="#7C5CFF" fillOpacity={0.1} stroke="#7C5CFF" strokeOpacity={0.35} strokeWidth={0.8} />
-          <text x="60" y="65" textAnchor="middle" fontSize={13} fill="#7C5CFF" fillOpacity={0.65} fontWeight={700}>AI</text>
+          <text x="60" y="65" textAnchor="middle" fontSize={13} fill="#7C5CFF" fillOpacity={0.65} fontWeight={700}>VC</text>
           {[-1,1].map(dir=>[-1,0,1].map((m,i)=>(
             <line key={`${dir}-${i}`} x1={dir===-1?32:88} y1={60+m*14} x2={dir===-1?20:100} y2={60+m*14} stroke="#7C5CFF" strokeOpacity={0.3} strokeWidth={1} />
           )))}
@@ -409,7 +409,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
           {[14,32,50,68,86,104].map((x,i)=>(
             <line key={i} x1={x} y1={68} x2={x} y2={76} stroke="#76DC50" strokeOpacity={0.25} strokeWidth={1} />
           ))}
-          <text x="65" y="88" textAnchor="middle" fontSize={8} fill="#76DC50" fillOpacity={0.35} fontWeight={600} fontFamily="monospace">NVIDIA L40S</text>
+          <text x="65" y="88" textAnchor="middle" fontSize={8} fill="#76DC50" fillOpacity={0.35} fontWeight={600} fontFamily="monospace">LIVE ANALYTICS</text>
         </svg>
       );
     default: return null;
@@ -476,16 +476,16 @@ function MobileHeroSection({ stage }: { stage: number }) {
       <div className="relative z-10 w-full flex flex-col items-center text-center">
         <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out"
           style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)' }}>
-          <span className="text-[#7C5CFF]">✦</span> Beta release
+          <span className="text-[#7C5CFF]">✦</span> Now in beta
         </div>
         <h1 className="font-bold tracking-tight leading-[1.05] text-[2.4rem] mb-4 transition-all duration-[900ms] ease-out"
           style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)' }}>
-          Intelligence at{' '}
-          <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">the Core</span>
+          Where founders{' '}
+          <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">meet capital</span>
         </h1>
         <p className="text-sm font-light text-[#EDEAFF]/45 leading-relaxed mb-6 max-w-xs transition-all duration-700 ease-out"
           style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)' }}>
-          Deploy and scale your AI workloads globally with infrastructure built for speed, reliability, and zero compromise on performance.
+          Run your fundraise on a platform built for speed, security, and zero wasted time chasing the wrong investors.
         </p>
         <div className="flex items-center gap-3 mb-8 transition-all duration-700 ease-out"
           style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
@@ -508,7 +508,7 @@ function MobileWhiteSection() {
   return (
     <div className="w-full bg-white flex flex-col px-5 pt-10 pb-10">
       <h2 className="text-[#0A090D] text-2xl font-bold tracking-tight text-center leading-tight mb-8">
-        Use AI faster and more efficiently right on your device!
+        Raise faster with everything in one place
       </h2>
       <div className="w-full rounded-[20px] overflow-hidden shadow-xl mb-8"
         style={{ aspectRatio: '4/3', background: 'radial-gradient(ellipse 70% 55% at 45% 35%, rgba(210,160,120,0.45) 0%, #2a2520 50%, #181410 100%)' }}>
@@ -516,13 +516,13 @@ function MobileWhiteSection() {
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 36px, rgba(255,255,255,0.02) 36px, rgba(255,255,255,0.02) 37px)' }} />
           <video src="/video1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
           <div className="absolute bottom-4 left-4 right-4 z-10">
-            <p className="text-white/75 text-xs font-medium leading-snug">Try <span className="text-white font-semibold">AI Inference</span> <span className="italic text-white/55">At The Edge</span></p>
+            <p className="text-white/75 text-xs font-medium leading-snug">Try the <span className="text-white font-semibold">Founder Dashboard</span> <span className="italic text-white/55">live</span></p>
           </div>
         </div>
       </div>
       <div className="flex flex-col">
-        <p className="text-[#0A090D] text-base font-semibold leading-snug mb-2">AI Inference at the Edge reduces the latency of your ML model output and improves the performance of AI-enabled applications.</p>
-        <p className="text-[#0A090D]/45 text-sm leading-relaxed mb-6">It's particularly useful for AI apps that need immediate processing and minimal delay, like generative AI and real-time object detection.</p>
+        <p className="text-[#0A090D] text-base font-semibold leading-snug mb-2">The Founder Dashboard cuts the time between your first investor intro and a signed term sheet.</p>
+        <p className="text-[#0A090D]/45 text-sm leading-relaxed mb-6">It's built for fast-moving rounds that need immediate follow-up and zero delay, like competitive seed and Series A processes.</p>
         <FeatureList small />
         <div className="mt-8">
           <Link href="/forms" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#1a1920] text-white text-sm font-semibold tracking-wide">
@@ -539,9 +539,9 @@ function MobileDarkSection() {
   return (
     <div className="relative w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C', overflow: 'hidden' }}>
       <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 100% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)' }} />
-      <Badge style={{ marginBottom: 16 }}>AI potential</Badge>
+      <Badge style={{ marginBottom: 16 }}>Fundraising tools</Badge>
       <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-8 max-w-xs">
-        Unleash your AI application's full potential
+        Unlock your fundraise's full potential
       </h2>
       <div className="w-full flex flex-col gap-3">
         {DARK_CARDS.map((card) => <DarkCard key={card.title} {...card} mobile />)}
@@ -556,12 +556,12 @@ function MobileGlobeSection() {
     <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black px-5 pt-10 pb-8" style={{ overflowX: 'hidden' }}>
       <Starfield count={25} />
       <div className="relative z-10 flex flex-col items-center">
-        <FadeIn visible={visible} style={{ marginBottom: 16 }}><Badge>Global network</Badge></FadeIn>
+        <FadeIn visible={visible} style={{ marginBottom: 16 }}><Badge>Investor network</Badge></FadeIn>
         <FadeIn visible={visible} delay={80} type="scale" style={{ marginBottom: 12 }}>
-          <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight">A truly global network for lightning-fast inference</h2>
+          <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight">A truly global network of active investors</h2>
         </FadeIn>
         <FadeIn visible={visible} delay={200} style={{ marginBottom: 24 }}>
-          <p className="text-[#EDEAFF]/45 text-sm text-center leading-relaxed">Gcore global network consists of more than 160 locations, allowing you to reach your users anywhere in the world.</p>
+          <p className="text-[#EDEAFF]/45 text-sm text-center leading-relaxed">Our network spans more than 160 regions, helping you reach the right investors wherever they're writing checks.</p>
         </FadeIn>
         <FadeIn visible={visible} delay={350} className="w-full">
           <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto block rounded-2xl" />
@@ -583,10 +583,10 @@ function MobileContactSection() {
       <Starfield count={20} maxTop={70} />
       <div className="relative z-10 flex flex-col items-center justify-center px-5 pt-14 pb-16">
         <FadeIn visible={visible} style={{ marginBottom: 16 }}>
-          <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight">Contact us to discuss your project</h2>
+          <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight">Talk to us about your raise</h2>
         </FadeIn>
         <FadeIn visible={visible} delay={150} style={{ marginBottom: 32 }}>
-          <p className="text-[#EDEAFF]/55 text-sm text-center leading-relaxed">Get in touch with us, and we'll guide you through running your ML model on Gcore Inference at the Edge.</p>
+          <p className="text-[#EDEAFF]/55 text-sm text-center leading-relaxed">Get in touch, and we'll walk you through running your fundraise on our platform from first intro to closed round.</p>
         </FadeIn>
         <FadeIn visible={visible} delay={300}>
           <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide">Talk to an expert</Link>
@@ -598,7 +598,7 @@ function MobileContactSection() {
 
 // ─── Desktop sections ─────────────────────────────────────────────────────────
 function HeroSection({ stage }: { stage: number }) {
-  const words = "Intelligence at the Core".split(' ');
+  const words = "Where founders meet capital".split(' ');
   return (
     <section className="relative w-full h-full flex flex-col items-center justify-center px-6 py-8 bg-[#070708]">
       <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{
@@ -624,16 +624,16 @@ function HeroSection({ stage }: { stage: number }) {
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center pt-[5vh]">
         <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out"
           style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)', filter: stage >= 1 ? 'blur(0px)' : 'blur(6px)' }}>
-          <span className="text-[#7C5CFF]">✦</span> Beta release
+          <span className="text-[#7C5CFF]">✦</span> Now in beta
         </div>
         <h1 className="font-bold tracking-tight leading-[1.05] text-[10vw] sm:text-5xl md:text-[3.4rem] lg:text-[3.8rem] mb-3 transition-all duration-[900ms] ease-out"
           style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)', filter: stage >= 1 ? 'blur(0px)' : 'blur(10px)' }}>
-          Intelligence at{' '}
-          <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">the Core</span>
+          Where founders{' '}
+          <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">meet capital</span>
         </h1>
         <p className="max-w-lg text-sm md:text-base font-light text-[#EDEAFF]/45 leading-relaxed mb-5 transition-all duration-700 ease-out"
           style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)', filter: stage >= 2 ? 'blur(0px)' : 'blur(6px)' }}>
-          Deploy and scale your AI workloads globally with infrastructure built for speed, reliability, and zero compromise on performance.
+          Run your fundraise on a platform built for speed, security, and zero wasted time chasing the wrong investors.
         </p>
         <div className="flex items-center gap-3 mb-2 transition-all duration-700 ease-out"
           style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
@@ -663,7 +663,7 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   const videoTranslY   = mr(whiteInner, 0.5, 1.0, 60,  0);
   const rightOpacity   = mr(whiteInner, 0.9, 1.4, 0,   1);
   const rightTranslX   = mr(whiteInner, 0.9, 1.4, 80,  0);
-  const words = "Use AI faster and more efficiently right on your device!".split(' ');
+  const words = "Raise faster with everything in one place".split(' ');
 
   return (
     <div className="flex-1 w-full flex flex-col justify-center max-w-6xl mx-auto px-6 py-12 lg:py-0">
@@ -686,14 +686,14 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
             <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 36px, rgba(255,255,255,0.02) 36px, rgba(255,255,255,0.02) 37px)' }} />
             <video src="/video1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
             <div className="absolute bottom-5 left-5 right-5 z-10">
-              <p className="text-white/75 text-sm font-medium leading-snug">Try <span className="text-white font-semibold">AI Inference</span> <span className="italic text-white/55">At The Edge</span></p>
+              <p className="text-white/75 text-sm font-medium leading-snug">Try the <span className="text-white font-semibold">Founder Dashboard</span> <span className="italic text-white/55">live</span></p>
             </div>
           </div>
         </div>
         <div className="flex-1 flex flex-col justify-center w-full max-w-md lg:max-w-none"
           style={{ opacity: rightOpacity, transform: `translateX(${rightTranslX}px)`, willChange: 'transform, opacity' }}>
-          <p className="text-[#0A090D] text-lg md:text-xl font-semibold leading-snug mb-3">AI Inference at the Edge reduces the latency of your ML model output and improves the performance of AI-enabled applications.</p>
-          <p className="text-[#0A090D]/45 text-sm md:text-base leading-relaxed mb-8">It's particularly useful for AI apps that need immediate processing and minimal delay, like generative AI and real-time object detection.</p>
+          <p className="text-[#0A090D] text-lg md:text-xl font-semibold leading-snug mb-3">The Founder Dashboard cuts the time between your first investor intro and a signed term sheet.</p>
+          <p className="text-[#0A090D]/45 text-sm md:text-base leading-relaxed mb-8">It's built for fast-moving rounds that need immediate follow-up and zero delay, like competitive seed and Series A processes.</p>
           <FeatureList />
           <div className="mt-10">
             <Link href="/forms" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#1a1920] text-white text-sm font-semibold tracking-wide hover:bg-[#2a2838] hover:shadow-[0_0_24px_rgba(124,92,255,0.2)] transition-all duration-300">
@@ -712,7 +712,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const badgeY         = mr(darkInner, 0.0, 0.4, 20, 0);
   const headingScale   = mr(darkInner, 0.0, 0.7, 2.0, 1);
   const headingOpacity = mr(darkInner, 0.0, 0.5, 0, 1);
-  const words = "Unleash your AI application's full potential".split(' ');
+  const words = "Unlock your fundraise's full potential".split(' ');
   const cardStarts = [0.6, 1.3, 2.2, 3.1, 4.0, 4.9, 5.8];
   const getCardAnim = useCallback((idx: number) => {
     const start = cardStarts[idx] ?? 0.6 + idx * 0.4;
@@ -731,7 +731,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
       <div className="relative z-10 w-full h-full flex flex-col items-center px-5 pt-6 pb-4 overflow-hidden">
         <div className="flex items-center gap-2 mb-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 flex-shrink-0"
           style={{ opacity: badgeOpacity, transform: `translateY(${badgeY}px)`, willChange: 'opacity, transform' }}>
-          <span style={{ color: '#FF8A3D' }}>✦</span> AI potential
+          <span style={{ color: '#FF8A3D' }}>✦</span> Fundraising tools
         </div>
         <h2 className="text-[#EDEAFF] text-2xl md:text-3xl lg:text-[2.1rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl flex-shrink-0"
           style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center top', willChange: 'transform, opacity' }}>
@@ -771,7 +771,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
 
 function GlobeSectionContent() {
   const { ref, visible } = useIntersection(0.25);
-  const words = "A truly global network for lightning-fast inference".split(' ');
+  const words = "A truly global network of active investors".split(' ');
   return (
     <div ref={ref} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-24 lg:py-28">
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
@@ -783,7 +783,7 @@ function GlobeSectionContent() {
         <div className="flex flex-col items-center gap-4 md:gap-5">
           <div className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(16px)', willChange: 'opacity, transform' }}>
-            <span style={{ color: '#FF8A3D' }}>✦</span> Global network
+            <span style={{ color: '#FF8A3D' }}>✦</span> Investor network
           </div>
           <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight max-w-2xl transition-all duration-700 ease-out"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.3)', transitionDelay: '80ms', willChange: 'transform, opacity' }}>
@@ -799,7 +799,7 @@ function GlobeSectionContent() {
           </h2>
           <p className="text-[#EDEAFF]/45 text-sm md:text-base text-center max-w-xl leading-relaxed transition-all duration-700 ease-out"
             style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(14px)', transitionDelay: '420ms', willChange: 'opacity, transform' }}>
-            Gcore global network consists of more than 160 locations, allowing you to reach your users anywhere in the world.
+            Our network spans more than 160 regions, helping you reach the right investors wherever they're writing checks.
           </p>
         </div>
         <div className="w-full max-w-2xl xl:max-w-[860px] mt-6 md:mt-8 transition-all duration-700 ease-out"
@@ -822,7 +822,7 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
   const btnOpacity     = mr(contactInner, 0.85, 1.2, 0, 1);
   const btnY           = mr(contactInner, 0.85, 1.2, 16, 0);
   const btnScale       = mr(contactInner, 0.85, 1.2, 0.92, 1);
-  const words = "Contact us to discuss your project".split(' ');
+  const words = "Talk to us about your raise".split(' ');
 
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col">
@@ -848,7 +848,7 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
         </h2>
         <p className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8"
           style={{ opacity: subOpacity, transform: `translateY(${subY}px)`, willChange: 'opacity, transform' }}>
-          Get in touch with us, and we'll guide you through running your ML model on Gcore Inference at the Edge. Together, we'll explore how our service can benefit you and your users.
+          Get in touch, and we'll walk you through running your fundraise on our platform, from your first investor intro to a closed round.
         </p>
         <div style={{ opacity: btnOpacity, transform: `translateY(${btnY}px) scale(${btnScale})`, willChange: 'opacity, transform' }}>
           <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:-translate-y-0.5 transition-all duration-300">
@@ -868,6 +868,8 @@ export default function HomePage() {
   const [contactScrollProgress, setContactScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const contactTrackRef = useRef<HTMLDivElement>(null);
+  const footerTrackRef = useRef<HTMLDivElement>(null);
+  const [hideHero, setHideHero] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -900,6 +902,24 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    if (isMobile) {
+      setHideHero(false);
+      return;
+    }
+
+    const el = footerTrackRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHideHero(entry.isIntersecting),
+      { threshold: 0.01 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isMobile]);
+
   const whiteSlideProgress   = clamp((scrollProgress) / WHITE_SLIDE_END);
   const whitePanelTranslateY = (1 - whiteSlideProgress) * 100;
   const darkSlideProgress    = clamp((scrollProgress - DARK_SLIDE_START) / (DARK_SLIDE_END - DARK_SLIDE_START));
@@ -926,7 +946,12 @@ export default function HomePage() {
         <div className="relative z-10" style={{ background: '#08080C', overflowX: 'hidden' }}><MobileDarkSection /></div>
         <div className="relative z-10 bg-black" style={{ overflowX: 'hidden' }}><MobileGlobeSection /></div>
         <div className="relative z-10" style={{ background: '#050507', overflowX: 'hidden' }}><MobileContactSection /></div>
-        <div className="relative z-20 bg-white shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"><Footer /></div>
+        <div
+          className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"
+          style={{ minHeight: '100svh' }}
+        >
+          <Footer />
+        </div>
         {globalStyle}
       </div>
     );
@@ -935,7 +960,10 @@ export default function HomePage() {
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
       <Loader loading={loading} />
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{ display: hideHero ? 'none' : 'block' }}
+      >
         <div className="pointer-events-auto relative z-50"><Navbar /></div>
         <div className="w-full h-screen overflow-hidden"><HeroSection stage={stage} /></div>
       </div>
@@ -968,7 +996,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="relative z-20 bg-white shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"><Footer /></div>
+      <div
+        ref={footerTrackRef}
+        className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"
+        style={{ minHeight: '100svh' }}
+      >
+        <Footer />
+      </div>
       {globalStyle}
     </div>
   );
