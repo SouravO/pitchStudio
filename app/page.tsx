@@ -119,32 +119,35 @@ export default function HomePage() {
   // ── On mobile, render static sections without scroll-pinning ──
   if (isMobile) {
     return (
-      <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
+      <div
+        className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black"
+        style={{ overflowX: 'hidden', maxWidth: '100vw' }}
+      >
         <Loader loading={loading} />
 
         {/* Mobile Hero - static, no fixed positioning */}
-        <div className="relative z-10">
+        <div className="relative z-10" style={{ overflowX: 'hidden' }}>
           <Navbar />
           <MobileHeroSection stage={stage} />
         </div>
 
         {/* Mobile White Section */}
-        <div className="relative z-10 bg-white">
+        <div className="relative z-10 bg-white" style={{ overflowX: 'hidden' }}>
           <MobileWhiteSection />
         </div>
 
         {/* Mobile Dark Section */}
-        <div className="relative z-10" style={{ background: '#08080C' }}>
+        <div className="relative z-10" style={{ background: '#08080C', overflowX: 'hidden' }}>
           <MobileDarkSection />
         </div>
 
         {/* Mobile Globe Section */}
-        <div className="relative z-10 bg-black">
+        <div className="relative z-10 bg-black" style={{ overflowX: 'hidden' }}>
           <MobileGlobeSection />
         </div>
 
         {/* Mobile Contact Section */}
-        <div className="relative z-10" style={{ background: '#050507' }}>
+        <div className="relative z-10" style={{ background: '#050507', overflowX: 'hidden' }}>
           <MobileContactSection />
         </div>
 
@@ -156,6 +159,9 @@ export default function HomePage() {
         <style jsx global>{`
           @media (prefers-reduced-motion: reduce) {
             * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+          }
+          @media (max-width: 767px) {
+            html, body { overflow-x: hidden; max-width: 100vw; }
           }
         `}</style>
       </div>
@@ -285,7 +291,7 @@ export default function HomePage() {
 
 function MobileHeroSection({ stage }: { stage: number }) {
   return (
-    <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]">
+    <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]" style={{ overflow: 'hidden' }}>
       {/* Grid bg */}
       <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{
         opacity: stage >= 1 ? 0.022 : 0,
@@ -295,11 +301,11 @@ function MobileHeroSection({ stage }: { stage: number }) {
         WebkitMaskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)',
       }} />
 
-      {/* Orange glow top-right */}
-      <div className="absolute -top-10 -right-10 w-[70vw] h-[70vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
-        opacity: stage >= 1 ? 0.9 : 0,
-        background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.3), transparent 60%)',
-        filter: 'blur(40px)',
+      {/* Orange glow top-right — contained within the section */}
+      <div className="absolute top-0 right-0 w-[60vw] h-[60vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
+        opacity: stage >= 1 ? 0.7 : 0,
+        background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.28), transparent 60%)',
+        filter: 'blur(30px)',
       }} />
 
       <div className="relative z-10 w-full flex flex-col items-center text-center">
@@ -346,9 +352,9 @@ function MobileHeroSection({ stage }: { stage: number }) {
         {/* Circuit SVG — simplified, scaled down for mobile */}
         <div
           className="w-full transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 4 ? 1 : 0 }}
+          style={{ opacity: stage >= 4 ? 1 : 0, overflow: 'hidden' }}
         >
-          <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" style={{ overflow: 'visible' }}>
+          <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" style={{ display: 'block', overflow: 'hidden' }}>
             <defs>
               <radialGradient id="pulseGlowM" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#FF8A3D" stopOpacity="1" />
@@ -495,7 +501,7 @@ function MobileWhiteSection() {
 
 function MobileDarkSection() {
   return (
-    <div className="w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C' }}>
+    <div className="relative w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C', overflow: 'hidden' }}>
       {/* Ambient top glow */}
       <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{
         background: 'radial-gradient(ellipse 70% 100% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)',
@@ -538,26 +544,26 @@ function MobileDarkCard({ title, desc, accentColor, glowColor, visual, videoSrc 
       style={{
         background: 'linear-gradient(145deg, #111118 0%, #0c0c12 100%)',
         boxShadow: `0 0 50px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.04)`,
-        minHeight: 120,
+        minHeight: 110,
       }}
     >
       {/* Background video */}
       {videoSrc && (
         <video src={videoSrc} autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.45 }} />
+          className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.4 }} />
       )}
       {/* Dark scrim */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.82) 0%, rgba(8,8,10,0.50) 38%, rgba(8,8,10,0.60) 100%)' }} />
+        style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.85) 0%, rgba(8,8,10,0.55) 40%, rgba(8,8,10,0.65) 100%)' }} />
       {/* Accent glow */}
       <div className="absolute inset-0 pointer-events-none rounded-2xl"
         style={{ background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)` }} />
-      {/* Visual — bottom right */}
-      <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: 0.3 }}>
+      {/* Visual — bottom right, clipped by parent overflow-hidden */}
+      <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: 0.25, maxWidth: '45%', overflow: 'hidden' }}>
         <CardVisual visual={visual} compact />
       </div>
-      {/* Text */}
-      <div className="relative z-10 p-4 flex flex-col gap-1" style={{ maxWidth: '70%' }}>
+      {/* Text — given enough width so it never wraps past the card */}
+      <div className="relative z-10 p-4 flex flex-col gap-1" style={{ maxWidth: '72%' }}>
         <h3 className="text-[#EDEAFF] font-semibold leading-snug text-sm">{title}</h3>
         <p className="text-[#EDEAFF]/40 text-xs leading-relaxed">{desc}</p>
       </div>
@@ -581,7 +587,7 @@ function MobileGlobeSection() {
   }, []);
 
   return (
-    <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black px-5 pt-10 pb-8">
+    <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black px-5 pt-10 pb-8" style={{ overflowX: 'hidden' }}>
       {/* Starfield */}
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
         {Array.from({ length: 25 }).map((_, i) => (
@@ -642,7 +648,7 @@ function MobileContactSection() {
   }, []);
 
   return (
-    <div ref={ref} className="relative w-full overflow-hidden flex flex-col" style={{ background: '#050507', minHeight: '60vh' }}>
+    <div ref={ref} className="relative w-full overflow-hidden flex flex-col" style={{ background: '#050507', minHeight: '60vh', overflowX: 'hidden' }}>
       {/* Fire glow */}
       <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '80%', opacity: visible ? 1 : 0, transition: 'opacity 1.2s ease-out 0.2s' }}>
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.75) 0%, rgba(220,100,40,0.45) 32%, rgba(140,60,20,0.18) 55%, transparent 76%)' }} />
