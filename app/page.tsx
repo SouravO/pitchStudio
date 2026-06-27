@@ -29,7 +29,6 @@ interface CardData {
   compact?: boolean;
   colSpan?: number;
 }
-
 // ─── Constants ────────────────────────────────────────────────────────────────
 const VB_W = 1000;
 const VB_H = 460;
@@ -312,7 +311,6 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
     </>
   );
 }
-
 // ─── Node glyph icons ─────────────────────────────────────────────────────────
 function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy: number }) {
   const s = '#EDEAFF', op = 0.8;
@@ -415,7 +413,6 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
     default: return null;
   }
 }
-
 // ─── Dark card (shared by desktop + mobile) ───────────────────────────────────
 function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details, mobile }: CardData & { height?: string; mobile?: boolean }) {
   return (
@@ -456,7 +453,6 @@ function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact
     </div>
   );
 }
-
 // ─── Mobile sections ──────────────────────────────────────────────────────────
 function MobileHeroSection({ stage }: { stage: number }) {
   return (
@@ -654,7 +650,6 @@ function HeroSection({ stage }: { stage: number }) {
     </section>
   );
 }
-
 function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   const headingScale   = mr(whiteInner, 0,   0.6, 2.4, 1);
   const headingOpacity = mr(whiteInner, 0,   0.5, 0,   1);
@@ -706,7 +701,6 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
     </div>
   );
 }
-
 function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const badgeOpacity   = mr(darkInner, 0.0, 0.4, 0, 1);
   const badgeY         = mr(darkInner, 0.0, 0.4, 20, 0);
@@ -859,7 +853,6 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
     </div>
   );
 }
-
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [loading, setLoading]   = useState(true);
@@ -907,7 +900,6 @@ export default function HomePage() {
       setHideHero(false);
       return;
     }
-
     const el = footerTrackRef.current;
     if (!el) return;
 
@@ -956,7 +948,6 @@ export default function HomePage() {
       </div>
     );
   }
-
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
       <Loader loading={loading} />
@@ -967,7 +958,6 @@ export default function HomePage() {
         <div className="pointer-events-auto relative z-50"><Navbar /></div>
         <div className="w-full h-screen overflow-hidden"><HeroSection stage={stage} /></div>
       </div>
-
       <div className="relative z-10" style={{ height: `${TOP_TOTAL_VH}vh` }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none">
           <SlidingPanel zIndex={10} background="white" translateY={whitePanelTranslateY}
@@ -983,9 +973,7 @@ export default function HomePage() {
           </SlidingPanel>
         </div>
       </div>
-
       <div className="relative z-10 bg-black min-h-screen w-full"><GlobeSectionContent /></div>
-
       <div ref={contactTrackRef} className="relative z-10 bg-black" style={{ height: `${CONTACT_TOTAL_VH}vh` }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none bg-black">
           <SlidingPanel zIndex={40} background="#050507" translateY={contactPanelTranslateY}
@@ -995,7 +983,6 @@ export default function HomePage() {
           </SlidingPanel>
         </div>
       </div>
-
       <div
         ref={footerTrackRef}
         className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"
