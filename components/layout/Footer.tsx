@@ -59,7 +59,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative z-1 border-t border-neutral-900 bg-black">
+    <footer className="relative z-[1] isolate w-full shrink-0 overflow-hidden border-t border-neutral-900 bg-black">
       {/* Ambient top glow */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
