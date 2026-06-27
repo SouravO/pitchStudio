@@ -45,24 +45,17 @@ const PIN_COUNT = 4;
 const PIN_SPACING = 13;
 
 // ─── Scroll budget (in vh units) ─────────────────────────────────────────────
-// 0      → 1     : white panel slides up
-// 1      → 3     : white panel locked, inner content animates
-// 3      → 4     : dark panel slides up OVER locked white panel
-// 4      → 7.5   : dark panel locked, cards reveal one by one
-// 7.5    → 8.5   : globe section (normal scroll, not pinned)
-// 8.5    → 11.5  : contact panel continues directly after globe section
-// Total scroll track: 750vh (white+dark track) + globe (auto height, min 1 viewport) + contact track
-const WHITE_SLIDE_END     = 1;     // white fully covers screen
-const WHITE_CONTENT_END   = 3;     // white content fully animated
-const DARK_SLIDE_START    = 3;     // dark starts rising
-const DARK_SLIDE_END      = 4;     // dark fully covers screen
-const DARK_CONTENT_END    = 7.5;   // last card revealed
-const CONTACT_SLIDE_START = -1;    // contact finishes rising before its track becomes the active viewport
-const CONTACT_SLIDE_END   = 0;     // contact fully covers screen as soon as its track starts
-const CONTACT_CONTENT_END = 3;     // contact content fully animated (relative to its own track)
-const CONTACT_CONTENT_LEAD = 1.2;  // keeps the contact heading visible immediately after the globe section
-const TOP_TOTAL_VH         = 750;  // white+dark scroll track height in vh
-const CONTACT_TOTAL_VH     = 300;  // contact scroll track height in vh
+const WHITE_SLIDE_END     = 1;
+const WHITE_CONTENT_END   = 3;
+const DARK_SLIDE_START    = 3;
+const DARK_SLIDE_END      = 4;
+const DARK_CONTENT_END    = 7.5;
+const CONTACT_SLIDE_START = -1;
+const CONTACT_SLIDE_END   = 0;
+const CONTACT_CONTENT_END = 3;
+const CONTACT_CONTENT_LEAD = 1.2;
+const TOP_TOTAL_VH         = 750;
+const CONTACT_TOTAL_VH     = 300;
 
 // ─── Root ────────────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -70,7 +63,15 @@ export default function HomePage() {
   const [stage, setStage]             = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [contactScrollProgress, setContactScrollProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const contactTrackRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const t = window.setTimeout(() => setLoading(false), 1900);
@@ -89,9 +90,6 @@ export default function HomePage() {
     const onScroll = () => {
       setScrollProgress(window.scrollY / window.innerHeight);
 
-      // Contact track progress is measured independently from its own position
-      // on the page, since the globe section between dark and contact now
-      // scrolls normally and has no fixed height contribution to rely on.
       const el = contactTrackRef.current;
       if (el) {
         const rect = el.getBoundingClientRect();
@@ -104,30 +102,67 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // ── White panel: slides in from 0→1, then stays locked at 0% translateY ──
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
   const whiteSlideProgress = clamp01(scrollProgress / WHITE_SLIDE_END);
-  const whitePanelTranslateY = (1 - whiteSlideProgress) * 100; // 100% → 0%
+  const whitePanelTranslateY = (1 - whiteSlideProgress) * 100;
 
-  // ── Dark panel: slides in from darkSlideStart→darkSlideEnd ──
   const darkSlideProgress = clamp01((scrollProgress - DARK_SLIDE_START) / (DARK_SLIDE_END - DARK_SLIDE_START));
-  const darkPanelTranslateY = (1 - darkSlideProgress) * 100; // 100% → 0%
+  const darkPanelTranslateY = (1 - darkSlideProgress) * 100;
 
-  // ── Contact panel: slides in from contactSlideStart→contactSlideEnd, using its own track's scroll progress ──
   const contactSlideProgress = clamp01((contactScrollProgress - CONTACT_SLIDE_START) / (CONTACT_SLIDE_END - CONTACT_SLIDE_START));
-  const contactPanelTranslateY = (1 - contactSlideProgress) * 100; // 100% → 0%
+  const contactPanelTranslateY = (1 - contactSlideProgress) * 100;
 
-  // ── Inner progress for white content animations (1→3 mapped to 0→2) ──
   const whiteInner = scrollProgress - WHITE_SLIDE_END;
-
-  // ── Inner progress for dark content animations (4→7.5 mapped to 0→3.5) ──
   const darkInner = scrollProgress - DARK_SLIDE_END;
-
-  // ── Globe section now scrolls normally; it animates itself in via IntersectionObserver-driven reveal ──
-
-  // ── Inner progress for contact content animations (relative to its own track) ──
   const contactInner = contactScrollProgress - CONTACT_SLIDE_END + CONTACT_CONTENT_LEAD;
 
+  // ── On mobile, render static sections without scroll-pinning ──
+  if (isMobile) {
+    return (
+      <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
+        <Loader loading={loading} />
+
+        {/* Mobile Hero - static, no fixed positioning */}
+        <div className="relative z-10">
+          <Navbar />
+          <MobileHeroSection stage={stage} />
+        </div>
+
+        {/* Mobile White Section */}
+        <div className="relative z-10 bg-white">
+          <MobileWhiteSection />
+        </div>
+
+        {/* Mobile Dark Section */}
+        <div className="relative z-10" style={{ background: '#08080C' }}>
+          <MobileDarkSection />
+        </div>
+
+        {/* Mobile Globe Section */}
+        <div className="relative z-10 bg-black">
+          <MobileGlobeSection />
+        </div>
+
+        {/* Mobile Contact Section */}
+        <div className="relative z-10" style={{ background: '#050507' }}>
+          <MobileContactSection />
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-20 bg-white shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
+          <Footer />
+        </div>
+
+        <style jsx global>{`
+          @media (prefers-reduced-motion: reduce) {
+            * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── Desktop view (unchanged) ──
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
       <Loader loading={loading} />
@@ -148,7 +183,7 @@ export default function HomePage() {
         {/* Sticky container — white & dark panels live here */}
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none">
 
-          {/* ── WHITE PANEL ── sits at z-10, slides up first */}
+          {/* ── WHITE PANEL ── */}
           <div
             className="absolute inset-x-0 bottom-0 pointer-events-auto bg-white flex flex-col shadow-2xl"
             style={{
@@ -170,7 +205,7 @@ export default function HomePage() {
             <WhiteSectionContent whiteInner={whiteInner} />
           </div>
 
-          {/* ── DARK PANEL ── sits at z-20, slides up over white */}
+          {/* ── DARK PANEL ── */}
           <div
             className="absolute inset-x-0 bottom-0 pointer-events-auto flex flex-col"
             style={{
@@ -197,21 +232,14 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── GLOBE SECTION ── normal scroll, not pinned. Scrolls past like a regular section,
-          then the page continues into the contact track below.
-          `min-h-screen` guarantees this section always covers at least one full
-          viewport immediately, so the fixed hero behind it never shows through. ── */}
+      {/* ── GLOBE SECTION ── */}
       <div className="relative z-10 bg-black min-h-screen w-full">
         <GlobeSectionContent />
       </div>
 
       {/* ── BOTTOM SCROLL TRACK (contact) ── */}
       <div ref={contactTrackRef} className="relative z-10 bg-black" style={{ height: `${CONTACT_TOTAL_VH}vh` }}>
-
-        {/* Sticky container — contact panel lives here */}
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none bg-black">
-
-          {/* ── CONTACT PANEL ── sits at z-40, slides up over globe */}
           <div
             className="absolute inset-x-0 bottom-0 pointer-events-auto flex flex-col"
             style={{
@@ -234,7 +262,6 @@ export default function HomePage() {
             )}
             <ContactSectionContent contactInner={contactInner} />
           </div>
-
         </div>
       </div>
 
@@ -252,8 +279,421 @@ export default function HomePage() {
   );
 }
 
-// ─── White section content ────────────────────────────────────────────────────
-// whiteInner: 0 = just locked, 2 = fully animated (maps WHITE_SLIDE_END→WHITE_CONTENT_END)
+// ─────────────────────────────────────────────────────────────────────────────
+// ── MOBILE-ONLY SECTIONS ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MobileHeroSection({ stage }: { stage: number }) {
+  return (
+    <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]">
+      {/* Grid bg */}
+      <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{
+        opacity: stage >= 1 ? 0.022 : 0,
+        backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)',
+        backgroundSize: '44px 44px',
+        maskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)',
+        WebkitMaskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)',
+      }} />
+
+      {/* Orange glow top-right */}
+      <div className="absolute -top-10 -right-10 w-[70vw] h-[70vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
+        opacity: stage >= 1 ? 0.9 : 0,
+        background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.3), transparent 60%)',
+        filter: 'blur(40px)',
+      }} />
+
+      <div className="relative z-10 w-full flex flex-col items-center text-center">
+        {/* Badge */}
+        <div
+          className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out"
+          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)' }}
+        >
+          <span className="text-[#7C5CFF]">✦</span> Beta release
+        </div>
+
+        {/* Heading */}
+        <h1
+          className="font-bold tracking-tight leading-[1.05] text-[2.4rem] mb-4 transition-all duration-[900ms] ease-out"
+          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)' }}
+        >
+          Intelligence at{' '}
+          <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">
+            the Core
+          </span>
+        </h1>
+
+        {/* Subtext */}
+        <p
+          className="text-sm font-light text-[#EDEAFF]/45 leading-relaxed mb-6 max-w-xs transition-all duration-700 ease-out"
+          style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)' }}
+        >
+          Deploy and scale your AI workloads globally with infrastructure built for speed, reliability, and zero compromise on performance.
+        </p>
+
+        {/* CTAs */}
+        <div
+          className="flex items-center gap-3 mb-8 transition-all duration-700 ease-out"
+          style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}
+        >
+          <Link href="/forms" className="px-5 py-2.5 rounded-full bg-[#7C5CFF] text-white text-sm font-semibold tracking-wide">
+            Get started
+          </Link>
+          <Link href="/contact" className="px-5 py-2.5 rounded-full border border-[#EDEAFF]/15 text-[#EDEAFF]/80 text-sm font-medium tracking-wide">
+            Book a demo
+          </Link>
+        </div>
+
+        {/* Circuit SVG — simplified, scaled down for mobile */}
+        <div
+          className="w-full transition-all duration-700 ease-out"
+          style={{ opacity: stage >= 4 ? 1 : 0 }}
+        >
+          <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" style={{ overflow: 'visible' }}>
+            <defs>
+              <radialGradient id="pulseGlowM" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FF8A3D" stopOpacity="1" />
+                <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id="dashGlowM" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" />
+                <stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" />
+                <stop offset="55%" stopColor="#FFB07A" stopOpacity="1" />
+                <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="dashGlowVM" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" />
+                <stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" />
+                <stop offset="55%" stopColor="#FFB07A" stopOpacity="1" />
+                <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {NODES.map((n) => (
+              <path key={`trace-${n.id}`} d={nodePath(n)} fill="none" stroke="#EDEAFF" strokeOpacity={0.22} strokeWidth={1.5} strokeLinecap="round" pathLength={1}
+                style={{ strokeDasharray: 1, strokeDashoffset: stage >= 5 ? 0 : 1, transition: `stroke-dashoffset 850ms ease-out ${n.delay}s` }} />
+            ))}
+            {[-1, 1].map((dir) =>
+              [-1, -0.33, 0.33, 1].map((m, i) => {
+                const y = CHIP_Y + m * 30;
+                const x1 = CHIP_X + dir * CHIP_HALF;
+                const x2 = x1 + dir * 10;
+                return <line key={`sp-${dir}-${i}`} x1={x1} y1={y} x2={x2} y2={y} stroke="#EDEAFF" strokeOpacity={0.3} strokeWidth={2.5} strokeLinecap="round"
+                  style={{ opacity: stage >= 4 ? 1 : 0, transition: `opacity 400ms ease-out ${0.1 + i * 0.05}s` }} />;
+              })
+            )}
+            {Array.from({ length: PIN_COUNT }).map((_, i) => {
+              const x = CHIP_X - ((PIN_COUNT - 1) * PIN_SPACING) / 2 + i * PIN_SPACING;
+              const botY = CHIP_Y + CHIP_HALF + 96;
+              return <line key={`pin-${i}`} x1={x} y1={CHIP_Y + CHIP_HALF} x2={x} y2={botY} stroke="#EDEAFF" strokeOpacity={0.3} strokeWidth={2} strokeLinecap="round" pathLength={1}
+                style={{ strokeDasharray: 1, strokeDashoffset: stage >= 4 ? 0 : 1, transition: `stroke-dashoffset 450ms ease-out ${0.15 + i * 0.07}s` }} />;
+            })}
+            {stage >= 7 && NODES.map((n) => (
+              <rect key={`dash-${n.id}`} x={-22} y={-2.2} width={44} height={4.4} rx={2.2} fill="url(#dashGlowM)">
+                <animateMotion dur="2.8s" begin={`${n.pulseDelay}s`} repeatCount="indefinite" path={nodePath(n)} rotate="auto" />
+                <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.82;1" dur="2.8s" begin={`${n.pulseDelay}s`} repeatCount="indefinite" />
+              </rect>
+            ))}
+            {stage >= 7 && Array.from({ length: PIN_COUNT }).map((_, i) => {
+              const x = CHIP_X - ((PIN_COUNT - 1) * PIN_SPACING) / 2 + i * PIN_SPACING;
+              const topY = CHIP_Y + CHIP_HALF;
+              const botY = topY + 96;
+              return (
+                <rect key={`pd-${i}`} x={x - 1.6} y={topY - 14} width={3.2} height={28} rx={1.6} fill="url(#dashGlowVM)">
+                  <animateMotion dur="1.5s" begin={`${i * 0.42}s`} repeatCount="indefinite" path={`M 0,0 L 0,${botY - topY}`} />
+                  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.78;1" dur="1.5s" begin={`${i * 0.42}s`} repeatCount="indefinite" />
+                </rect>
+              );
+            })}
+            {NODES.map((n) => (
+              <g key={n.id} style={{ opacity: stage >= 6 ? 1 : 0, transition: `opacity 550ms ease-out ${n.delay + 0.35}s` }}>
+                <circle cx={n.side === 'left' ? n.cx + NODE_HALF + 5 : n.cx - NODE_HALF - 5} cy={n.cy} r={2.5} fill="#0A090D" stroke="#EDEAFF" strokeOpacity={0.4} />
+                <rect x={n.cx - NODE_HALF} y={n.cy - NODE_HALF} width={NODE_HALF * 2} height={NODE_HALF * 2} rx={12} fill="#13121A" stroke="#EDEAFF" strokeOpacity={0.1} />
+                <NodeGlyph glyph={n.glyph} cx={n.cx} cy={n.cy} />
+              </g>
+            ))}
+            <g style={{ opacity: stage >= 4 ? 1 : 0, transition: 'opacity 500ms ease-out' }}>
+              <rect x={CHIP_X - CHIP_HALF} y={CHIP_Y - CHIP_HALF} width={CHIP_HALF * 2} height={CHIP_HALF * 2} rx={18} fill="#13121A" stroke="#7C5CFF" strokeOpacity={0.45} strokeWidth={1.5} />
+              <rect x={CHIP_X - CHIP_HALF} y={CHIP_Y - CHIP_HALF} width={CHIP_HALF * 2} height={CHIP_HALF * 2} rx={18} fill="url(#pulseGlowM)" opacity={0.06} />
+              <text x={CHIP_X} y={CHIP_Y + 7} textAnchor="middle" fontSize={19} fontWeight={700} fill="#EDEAFF" style={{ fontFamily: 'system-ui, sans-serif', letterSpacing: '0.01em' }}>AI</text>
+            </g>
+          </svg>
+        </div>
+
+        {/* Scroll hint */}
+        <div className="flex flex-col items-center gap-2 mt-2" style={{ opacity: stage >= 7 ? 1 : 0, transition: 'opacity 700ms' }}>
+          <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-[#EDEAFF]/30">scroll</span>
+          <div className="w-px h-5 bg-gradient-to-b from-[#7C5CFF]/60 to-transparent" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MobileWhiteSection() {
+  return (
+    <div className="w-full bg-white flex flex-col px-5 pt-10 pb-10">
+      {/* Heading */}
+      <h2 className="text-[#0A090D] text-2xl font-bold tracking-tight text-center leading-tight mb-8">
+        Use AI faster and more efficiently right on your device!
+      </h2>
+
+      {/* Video card */}
+      <div className="w-full rounded-[20px] overflow-hidden shadow-xl mb-8"
+        style={{ aspectRatio: '4/3', background: 'radial-gradient(ellipse 70% 55% at 45% 35%, rgba(210,160,120,0.45) 0%, #2a2520 50%, #181410 100%)' }}
+      >
+        <div className="relative w-full h-full">
+          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 36px, rgba(255,255,255,0.02) 36px, rgba(255,255,255,0.02) 37px)' }} />
+          <video src="/video1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <p className="text-white/75 text-xs font-medium leading-snug">
+              Try <span className="text-white font-semibold">AI Inference</span>{' '}
+              <span className="italic text-white/55">At The Edge</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Text content */}
+      <div className="flex flex-col">
+        <p className="text-[#0A090D] text-base font-semibold leading-snug mb-2">
+          AI Inference at the Edge reduces the latency of your ML model output and improves the performance of AI-enabled applications.
+        </p>
+        <p className="text-[#0A090D]/45 text-sm leading-relaxed mb-6">
+          It's particularly useful for AI apps that need immediate processing and minimal delay, like generative AI and real-time object detection.
+        </p>
+
+        {/* Feature list */}
+        <div className="flex flex-col">
+          {[
+            { icon: '●',  color: '#FF8A3D', label: 'Text generation',    tag: 'Streaming output'   },
+            { icon: '◎',  color: '#E84545', label: 'Speech recognition', tag: 'Multi-language'     },
+            { icon: 'S.', color: '#7C5CFF', label: 'Image generation',   tag: 'Sub-second latency' },
+          ].map((feat) => (
+            <div key={feat.label} className="flex items-center justify-between py-3.5 border-b border-[#0A090D]/8 last:border-0">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold w-5 text-center leading-none" style={{ color: feat.color }}>{feat.icon}</span>
+                <span className="text-[#0A090D] text-sm font-medium">{feat.label}</span>
+              </div>
+              <span className="text-[#0A090D]/30 text-[10px] font-mono tracking-widest">{feat.tag}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-8">
+          <Link href="/forms" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#1a1920] text-white text-sm font-semibold tracking-wide">
+            Get started
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileDarkSection() {
+  return (
+    <div className="w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C' }}>
+      {/* Ambient top glow */}
+      <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 70% 100% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)',
+      }} />
+
+      {/* Badge */}
+      <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/50">
+        <span style={{ color: '#FF8A3D' }}>✦</span> AI potential
+      </div>
+
+      {/* Heading */}
+      <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-8 max-w-xs">
+        Unleash your AI application's full potential
+      </h2>
+
+      {/* Cards — stacked vertically on mobile */}
+      <div className="w-full flex flex-col gap-3">
+        {[
+          { title: 'Low-latency global network', desc: 'Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms.', accentColor: 'rgba(255,138,61,0.18)', glowColor: 'rgba(255,138,61,0.07)', visual: 'globe', videoSrc: '/vid1.mp4' },
+          { title: 'Single end-point for all AI tasks', desc: 'Automated infrastructure management for AI applications with real-time inference.', accentColor: 'rgba(124,92,255,0.18)', glowColor: 'rgba(124,92,255,0.07)', visual: 'chip', videoSrc: '/vid2.mp4' },
+          { title: 'Data privacy and security', desc: 'Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models.', accentColor: 'rgba(232,69,69,0.14)', glowColor: 'rgba(232,69,69,0.06)', visual: 'lock', videoSrc: '/vid3.mp4' },
+          { title: 'Unlimited object storage', desc: 'Use scalable S3-compatible cloud storage that grows with your needs.', accentColor: 'rgba(61,200,255,0.14)', glowColor: 'rgba(61,200,255,0.06)', visual: 'storage', videoSrc: '/vid4.mp4' },
+          { title: 'Pre-trained ML models', desc: 'Access Gcore ML Model Hub or bring your own.', accentColor: 'rgba(255,200,61,0.12)', glowColor: 'rgba(255,200,61,0.05)', visual: 'model', videoSrc: '/vid5.mp4' },
+          { title: 'Model autoscaling', desc: 'Set up autoscaling to handle load spikes. Use and pay only for what you need.', accentColor: 'rgba(80,255,160,0.10)', glowColor: 'rgba(80,255,160,0.05)', visual: 'scale', videoSrc: '/vid6.mp4' },
+          { title: 'NVIDIA L40S GPUs', desc: 'Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput.', accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu', videoSrc: '/vid1.mp4' },
+        ].map((card) => (
+          <MobileDarkCard key={card.title} {...card} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileDarkCard({ title, desc, accentColor, glowColor, visual, videoSrc }: {
+  title: string; desc: string; accentColor: string; glowColor: string; visual: string; videoSrc?: string;
+}) {
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden border border-[#EDEAFF]/[0.07] flex flex-col"
+      style={{
+        background: 'linear-gradient(145deg, #111118 0%, #0c0c12 100%)',
+        boxShadow: `0 0 50px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+        minHeight: 120,
+      }}
+    >
+      {/* Background video */}
+      {videoSrc && (
+        <video src={videoSrc} autoPlay loop muted playsInline
+          className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.45 }} />
+      )}
+      {/* Dark scrim */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.82) 0%, rgba(8,8,10,0.50) 38%, rgba(8,8,10,0.60) 100%)' }} />
+      {/* Accent glow */}
+      <div className="absolute inset-0 pointer-events-none rounded-2xl"
+        style={{ background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)` }} />
+      {/* Visual — bottom right */}
+      <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: 0.3 }}>
+        <CardVisual visual={visual} compact />
+      </div>
+      {/* Text */}
+      <div className="relative z-10 p-4 flex flex-col gap-1" style={{ maxWidth: '70%' }}>
+        <h3 className="text-[#EDEAFF] font-semibold leading-snug text-sm">{title}</h3>
+        <p className="text-[#EDEAFF]/40 text-xs leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function MobileGlobeSection() {
+  const [visible, setVisible] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black px-5 pt-10 pb-8">
+      {/* Starfield */}
+      <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
+        {Array.from({ length: 25 }).map((_, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: `${(i * 37) % 100}%`, left: `${(i * 53) % 100}%`,
+            width: (i % 3) + 0.5, height: (i % 3) + 0.5, borderRadius: '50%',
+            background: '#EDEAFF', opacity: 0.25 + (i % 4) * 0.1,
+          }} />
+        ))}
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Badge */}
+        <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(12px)' }}
+        >
+          <span style={{ color: '#FF8A3D' }}>✦</span> Global network
+        </div>
+
+        {/* Heading */}
+        <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-3 transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.2)', transitionDelay: '80ms' }}
+        >
+          A truly global network for lightning-fast inference
+        </h2>
+
+        {/* Subtext */}
+        <p className="text-[#EDEAFF]/45 text-sm text-center leading-relaxed mb-6 transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(10px)', transitionDelay: '200ms' }}
+        >
+          Gcore global network consists of more than 160 locations, allowing you to reach your users anywhere in the world.
+        </p>
+
+        {/* Video */}
+        <div className="w-full transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(30px)', transitionDelay: '350ms' }}
+        >
+          <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto block rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileContactSection() {
+  const [visible, setVisible] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="relative w-full overflow-hidden flex flex-col" style={{ background: '#050507', minHeight: '60vh' }}>
+      {/* Fire glow */}
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '80%', opacity: visible ? 1 : 0, transition: 'opacity 1.2s ease-out 0.2s' }}>
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.75) 0%, rgba(220,100,40,0.45) 32%, rgba(140,60,20,0.18) 55%, transparent 76%)' }} />
+        <div className="absolute inset-x-0 bottom-0" style={{ height: '60%', background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.85) 0%, rgba(255,130,55,0.5) 38%, transparent 78%)' }} />
+        <div className="absolute inset-x-0 bottom-0" style={{ height: '28%', background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.9) 0%, rgba(255,200,140,0.6) 40%, transparent 80%)', filter: 'blur(2px)' }} />
+      </div>
+
+      {/* Starfield */}
+      <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.4 }}>
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: `${(i * 41) % 70}%`, left: `${(i * 59) % 100}%`,
+            width: (i % 3) + 0.5, height: (i % 3) + 0.5, borderRadius: '50%',
+            background: '#EDEAFF', opacity: 0.25 + (i % 4) * 0.1,
+          }} />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-5 pt-14 pb-16">
+        {/* Heading */}
+        <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-4 transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)' }}
+        >
+          Contact us to discuss your project
+        </h2>
+
+        {/* Subtext */}
+        <p className="text-[#EDEAFF]/55 text-sm text-center leading-relaxed mb-8 transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(10px)', transitionDelay: '150ms' }}
+        >
+          Get in touch with us, and we'll guide you through running your ML model on Gcore Inference at the Edge.
+        </p>
+
+        {/* Button */}
+        <div className="transition-all duration-700 ease-out"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(10px)', transitionDelay: '300ms' }}
+        >
+          <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide">
+            Talk to an expert
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── DESKTOP-ONLY SECTIONS (untouched) ────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
 function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
   const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => {
@@ -358,20 +798,6 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   );
 }
 
-// ─── Dark section content ─────────────────────────────────────────────────────
-// darkInner: 0 = just locked, 3.5 = all cards visible
-// Card reveal sequence: staggered, one by one, from bottom
-//
-// VIDEO MAPPING — each card gets a distinct background video from /public,
-// none repeated except the 7th card (only 6 source videos exist for 7 cards,
-// per explicit instruction to reuse one rather than leave a card video-less):
-//   card0 Low-latency global network   → /vid1.mp4
-//   card1 Single end-point for AI      → /vid2.mp4
-//   card2 Data privacy and security    → /vid3.mp4
-//   card3 Unlimited object storage     → /vid4.mp4
-//   card4 Pre-trained ML models        → /vid5.mp4
-//   card5 Model autoscaling            → /vid6.mp4
-//   card6 NVIDIA L40S GPUs             → /vid1.mp4 (reused, per instruction)
 function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
   const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => {
@@ -379,7 +805,6 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
     return o0 + (o1 - o0) * p;
   };
 
-  // Badge + heading reveal
   const badgeOpacity = mr(darkInner, 0.0, 0.4, 0, 1);
   const badgeY       = mr(darkInner, 0.0, 0.4, 20, 0);
   const headingScale = mr(darkInner, 0.0, 0.7, 2.0, 1);
@@ -387,15 +812,6 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
 
   const words = "Unleash your AI application's full potential".split(' ');
 
-  // Cards: 5 cards total, each revealed individually with a 0.45vh window
-  // Layout: [card0 wide, card1 tall] then [card2, card3, card4] in a row
-  //   card0 starts at darkInner 0.6
-  //   card1 at 0.95
-  //   card2 at 1.4
-  //   card3 at 1.8
-  //   card4 at 2.2
-  //   card5 at 2.6
-  //   card6 at 3.0
   const cardStarts = [0.6, 0.95, 1.4, 1.8, 2.2, 2.6, 3.0];
 
   const getCardAnim = (idx: number) => {
@@ -410,15 +826,11 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
 
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col">
-
-      {/* Ambient top glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)',
       }} />
 
       <div className="relative z-10 w-full h-full flex flex-col items-center px-5 pt-12 pb-6 overflow-hidden">
-
-        {/* Badge */}
         <div
           className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50"
           style={{ opacity: badgeOpacity, transform: `translateY(${badgeY}px)`, willChange: 'opacity, transform' }}
@@ -426,7 +838,6 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
           <span style={{ color: '#FF8A3D' }}>✦</span> AI potential
         </div>
 
-        {/* Heading */}
         <h2
           className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-8 max-w-2xl"
           style={{
@@ -452,172 +863,46 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
           })}
         </h2>
 
-        {/* ── CARD GRID ── */}
-        {/* Matches reference: two large cards top, then 3 cards below, then 2 wide cards */}
         <div className="w-full max-w-6xl flex flex-col gap-3">
-
-          {/* Row 1: card0 (wide, tall) + card1 (narrow, tall) */}
           <div className="grid grid-cols-5 gap-3" style={{ height: 210 }}>
-            {/* Card 0 — wide left, globe visual */}
-            <div
-              className="col-span-3"
-              style={{
-                opacity: getCardAnim(0).opacity,
-                transform: `translateY(${getCardAnim(0).translateY}px) scale(${getCardAnim(0).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Low-latency global network"
-                desc="Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms."
-                accentColor="rgba(255,138,61,0.18)"
-                glowColor="rgba(255,138,61,0.07)"
-                visual="globe"
-                height="100%"
-                videoSrc="/vid1.mp4"
-              />
+            <div className="col-span-3" style={{ opacity: getCardAnim(0).opacity, transform: `translateY(${getCardAnim(0).translateY}px) scale(${getCardAnim(0).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Low-latency global network" desc="Minimize model response time with our 160+ location CDN, providing an average global latency of 30 ms." accentColor="rgba(255,138,61,0.18)" glowColor="rgba(255,138,61,0.07)" visual="globe" height="100%" videoSrc="/vid1.mp4" />
             </div>
-            {/* Card 1 — narrow right, chip visual */}
-            <div
-              className="col-span-2"
-              style={{
-                opacity: getCardAnim(1).opacity,
-                transform: `translateY(${getCardAnim(1).translateY}px) scale(${getCardAnim(1).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Single end-point for all AI tasks"
-                desc="Automated infrastructure management for AI applications with real-time inference."
-                accentColor="rgba(124,92,255,0.18)"
-                glowColor="rgba(124,92,255,0.07)"
-                visual="chip"
-                height="100%"
-                videoSrc="/vid2.mp4"
-              />
+            <div className="col-span-2" style={{ opacity: getCardAnim(1).opacity, transform: `translateY(${getCardAnim(1).translateY}px) scale(${getCardAnim(1).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Single end-point for all AI tasks" desc="Automated infrastructure management for AI applications with real-time inference." accentColor="rgba(124,92,255,0.18)" glowColor="rgba(124,92,255,0.07)" visual="chip" height="100%" videoSrc="/vid2.mp4" />
             </div>
           </div>
 
-          {/* Row 2: card2 (wide), card3 (medium), card4 (narrow) */}
           <div className="grid grid-cols-5 gap-3" style={{ height: 175 }}>
-            <div
-              className="col-span-2"
-              style={{
-                opacity: getCardAnim(2).opacity,
-                transform: `translateY(${getCardAnim(2).translateY}px) scale(${getCardAnim(2).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Data privacy and security"
-                desc="Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models."
-                accentColor="rgba(232,69,69,0.14)"
-                glowColor="rgba(232,69,69,0.06)"
-                visual="lock"
-                height="100%"
-                videoSrc="/vid3.mp4"
-              />
+            <div className="col-span-2" style={{ opacity: getCardAnim(2).opacity, transform: `translateY(${getCardAnim(2).translateY}px) scale(${getCardAnim(2).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Data privacy and security" desc="Use pre-trained foundational models from the Gcore ML Model Hub or your own trained models." accentColor="rgba(232,69,69,0.14)" glowColor="rgba(232,69,69,0.06)" visual="lock" height="100%" videoSrc="/vid3.mp4" />
             </div>
-            <div
-              className="col-span-2"
-              style={{
-                opacity: getCardAnim(3).opacity,
-                transform: `translateY(${getCardAnim(3).translateY}px) scale(${getCardAnim(3).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Unlimited object storage"
-                desc="Use scalable S3-compatible cloud storage that grows with your needs."
-                accentColor="rgba(61,200,255,0.14)"
-                glowColor="rgba(61,200,255,0.06)"
-                visual="storage"
-                height="100%"
-                videoSrc="/vid4.mp4"
-              />
+            <div className="col-span-2" style={{ opacity: getCardAnim(3).opacity, transform: `translateY(${getCardAnim(3).translateY}px) scale(${getCardAnim(3).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Unlimited object storage" desc="Use scalable S3-compatible cloud storage that grows with your needs." accentColor="rgba(61,200,255,0.14)" glowColor="rgba(61,200,255,0.06)" visual="storage" height="100%" videoSrc="/vid4.mp4" />
             </div>
-            <div
-              className="col-span-1"
-              style={{
-                opacity: getCardAnim(4).opacity,
-                transform: `translateY(${getCardAnim(4).translateY}px) scale(${getCardAnim(4).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Pre-trained ML models"
-                desc="Access Gcore ML Model Hub or bring your own."
-                accentColor="rgba(255,200,61,0.12)"
-                glowColor="rgba(255,200,61,0.05)"
-                visual="model"
-                height="100%"
-                compact
-                videoSrc="/vid5.mp4"
-              />
+            <div className="col-span-1" style={{ opacity: getCardAnim(4).opacity, transform: `translateY(${getCardAnim(4).translateY}px) scale(${getCardAnim(4).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Pre-trained ML models" desc="Access Gcore ML Model Hub or bring your own." accentColor="rgba(255,200,61,0.12)" glowColor="rgba(255,200,61,0.05)" visual="model" height="100%" compact videoSrc="/vid5.mp4" />
             </div>
           </div>
 
-          {/* Row 3: card5 (wide), card6 (wide) */}
           <div className="grid grid-cols-5 gap-3" style={{ height: 160 }}>
-            <div
-              className="col-span-3"
-              style={{
-                opacity: getCardAnim(5).opacity,
-                transform: `translateY(${getCardAnim(5).translateY}px) scale(${getCardAnim(5).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="Model autoscaling"
-                desc="Set up autoscaling to handle load spikes. Use and pay only for what you need."
-                accentColor="rgba(80,255,160,0.10)"
-                glowColor="rgba(80,255,160,0.05)"
-                visual="scale"
-                height="100%"
-                videoSrc="/vid6.mp4"
-              />
+            <div className="col-span-3" style={{ opacity: getCardAnim(5).opacity, transform: `translateY(${getCardAnim(5).translateY}px) scale(${getCardAnim(5).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="Model autoscaling" desc="Set up autoscaling to handle load spikes. Use and pay only for what you need." accentColor="rgba(80,255,160,0.10)" glowColor="rgba(80,255,160,0.05)" visual="scale" height="100%" videoSrc="/vid6.mp4" />
             </div>
-            <div
-              className="col-span-2"
-              style={{
-                opacity: getCardAnim(6).opacity,
-                transform: `translateY(${getCardAnim(6).translateY}px) scale(${getCardAnim(6).scale})`,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <DarkCard
-                title="NVIDIA L40S GPUs"
-                desc="Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput."
-                accentColor="rgba(100,220,60,0.10)"
-                glowColor="rgba(100,220,60,0.04)"
-                visual="gpu"
-                height="100%"
-                videoSrc="/vid1.mp4"
-              />
+            <div className="col-span-2" style={{ opacity: getCardAnim(6).opacity, transform: `translateY(${getCardAnim(6).translateY}px) scale(${getCardAnim(6).scale})`, willChange: 'transform, opacity' }}>
+              <DarkCard title="NVIDIA L40S GPUs" desc="Run inference on cutting-edge NVIDIA L40S GPUs for maximum throughput." accentColor="rgba(100,220,60,0.10)" glowColor="rgba(100,220,60,0.04)" visual="gpu" height="100%" videoSrc="/vid1.mp4" />
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Dark Card ────────────────────────────────────────────────────────────────
-// Renders an optional looping background video, with a dark scrim layered
-// above it (and below the text) so titles/descriptions stay readable
-// regardless of what's playing behind them.
 function DarkCard({
   title, desc, accentColor, glowColor, visual, height, compact, videoSrc,
 }: {
-  title: string;
-  desc: string;
-  accentColor: string;
-  glowColor: string;
-  visual: string;
-  height?: string;
-  compact?: boolean;
-  videoSrc?: string;
+  title: string; desc: string; accentColor: string; glowColor: string; visual: string; height?: string; compact?: boolean; videoSrc?: string;
 }) {
   return (
     <div
@@ -628,39 +913,16 @@ function DarkCard({
         boxShadow: `0 0 50px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.04)`,
       }}
     >
-      {/* Background video */}
       {videoSrc && (
-        <video
-          src={videoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.55 }}
-        />
+        <video src={videoSrc} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.55 }} />
       )}
-
-      {/* Dark scrim — sits above the video, below everything else, so text
-          stays legible no matter how bright/busy the footage is */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(180deg, rgba(8,8,10,0.78) 0%, rgba(8,8,10,0.45) 38%, rgba(8,8,10,0.55) 100%)',
-        }}
-      />
-
-      {/* Bottom radial accent */}
-      <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{
-        background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)`,
-      }} />
-
-      {/* Decorative visual — bottom right */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.78) 0%, rgba(8,8,10,0.45) 38%, rgba(8,8,10,0.55) 100%)' }} />
+      <div className="absolute inset-0 pointer-events-none rounded-2xl"
+        style={{ background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)` }} />
       <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: 0.35 }}>
         <CardVisual visual={visual} compact={compact} />
       </div>
-
-      {/* Text content */}
       <div className="relative z-10 p-4 flex flex-col gap-1.5" style={{ maxWidth: compact ? '100%' : '68%' }}>
         <h3 className={`text-[#EDEAFF] font-semibold leading-snug ${compact ? 'text-xs' : 'text-sm lg:text-[0.95rem]'}`}>
           {title}
@@ -673,7 +935,6 @@ function DarkCard({
   );
 }
 
-// ─── Card visuals (SVG) ───────────────────────────────────────────────────────
 function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) {
   const size = compact ? 80 : 110;
 
@@ -702,18 +963,12 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
           <text x="60" y="65" textAnchor="middle" fontSize={13} fill="#7C5CFF" fillOpacity={0.65} fontWeight={700}>AI</text>
           {[-1, 1].map(dir =>
             [-1, 0, 1].map((m, i) => (
-              <line key={`${dir}-${i}`}
-                x1={dir === -1 ? 32 : 88} y1={60 + m * 14}
-                x2={dir === -1 ? 20 : 100} y2={60 + m * 14}
-                stroke="#7C5CFF" strokeOpacity={0.3} strokeWidth={1} />
+              <line key={`${dir}-${i}`} x1={dir === -1 ? 32 : 88} y1={60 + m * 14} x2={dir === -1 ? 20 : 100} y2={60 + m * 14} stroke="#7C5CFF" strokeOpacity={0.3} strokeWidth={1} />
             ))
           )}
           {[-1, 1].map(dir =>
             [-1, 0, 1].map((m, i) => (
-              <line key={`v-${dir}-${i}`}
-                x1={60 + m * 14} y1={dir === -1 ? 32 : 88}
-                x2={60 + m * 14} y2={dir === -1 ? 20 : 100}
-                stroke="#7C5CFF" strokeOpacity={0.25} strokeWidth={1} />
+              <line key={`v-${dir}-${i}`} x1={60 + m * 14} y1={dir === -1 ? 32 : 88} x2={60 + m * 14} y2={dir === -1 ? 20 : 100} stroke="#7C5CFF" strokeOpacity={0.25} strokeWidth={1} />
             ))
           )}
         </svg>
@@ -759,10 +1014,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
               fill="#50FFA0" fillOpacity={0.10 + i * 0.04}
               stroke="#50FFA0" strokeOpacity={0.28} strokeWidth={0.8} />
           ))}
-          <polyline
-            points="15,76 33,62 51,48 69,34 87,20 105,8"
-            stroke="#50FFA0" strokeOpacity={0.45} strokeWidth={1.2}
-            fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points="15,76 33,62 51,48 69,34 87,20 105,8" stroke="#50FFA0" strokeOpacity={0.45} strokeWidth={1.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
     case 'gpu':
@@ -784,9 +1036,6 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
   }
 }
 
-// ─── Globe section content ────────────────────────────────────────────────────
-// Normal scroll section (not pinned/locked). Reveals once via IntersectionObserver
-// as the section scrolls into view: badge -> heading (word-by-word) -> subtext -> video.
 function GlobeSectionContent() {
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -797,10 +1046,7 @@ function GlobeSectionContent() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-            observer.disconnect();
-          }
+          if (entry.isIntersecting) { setVisible(true); observer.disconnect(); }
         });
       },
       { threshold: 0.25 }
@@ -812,12 +1058,7 @@ function GlobeSectionContent() {
   const words = "A truly global network for lightning-fast inference".split(' ');
 
   return (
-    <div
-      ref={sectionRef}
-      className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-20"
-    >
-
-      {/* Starfield specks */}
+    <div ref={sectionRef} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-20">
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
         {Array.from({ length: 40 }).map((_, i) => {
           const top = (i * 37) % 100;
@@ -834,42 +1075,22 @@ function GlobeSectionContent() {
       </div>
 
       <div className="relative z-10 w-full flex flex-col items-center px-5 overflow-hidden">
-
-        {/* Text block — badge, heading, subtext */}
         <div className="flex flex-col items-center">
-          {/* Badge */}
           <div
             className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? 'translateY(0px)' : 'translateY(16px)',
-              willChange: 'opacity, transform',
-            }}
+            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(16px)', willChange: 'opacity, transform' }}
           >
             <span style={{ color: '#FF8A3D' }}>✦</span> Global network
           </div>
 
-          {/* Heading */}
           <h2
             className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl transition-all duration-700 ease-out"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? 'scale(1)' : 'scale(1.3)',
-              transitionDelay: '80ms',
-              willChange: 'transform, opacity',
-            }}
+            style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.3)', transitionDelay: '80ms', willChange: 'transform, opacity' }}
           >
             {words.map((word, i) => (
               <React.Fragment key={i}>
-                <span
-                  className="inline-block transition-all duration-500 ease-out"
-                  style={{
-                    opacity: visible ? 1 : 0,
-                    filter: visible ? 'blur(0px)' : 'blur(10px)',
-                    transitionDelay: `${160 + i * 60}ms`,
-                    willChange: 'opacity, filter',
-                  }}
-                >
+                <span className="inline-block transition-all duration-500 ease-out"
+                  style={{ opacity: visible ? 1 : 0, filter: visible ? 'blur(0px)' : 'blur(10px)', transitionDelay: `${160 + i * 60}ms`, willChange: 'opacity, filter' }}>
                   {word}
                 </span>
                 {i !== words.length - 1 && ' '}
@@ -877,47 +1098,25 @@ function GlobeSectionContent() {
             ))}
           </h2>
 
-          {/* Subtext */}
           <p
             className="text-[#EDEAFF]/45 text-sm md:text-base text-center max-w-xl leading-relaxed transition-all duration-700 ease-out"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? 'translateY(0px)' : 'translateY(14px)',
-              transitionDelay: '420ms',
-              willChange: 'opacity, transform',
-            }}
+            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(14px)', transitionDelay: '420ms', willChange: 'opacity, transform' }}
           >
             Gcore global network consists of more than 160 locations, allowing you to reach your users anywhere in the world.
           </p>
         </div>
 
-        {/* Video — sits in normal flow directly below the text */}
         <div
           className="w-full max-w-3xl -mt-4 transition-all duration-700 ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? 'translateY(0px) scale(1)' : 'translateY(50px) scale(0.92)',
-            transitionDelay: '550ms',
-            willChange: 'transform, opacity',
-          }}
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px) scale(1)' : 'translateY(50px) scale(0.92)', transitionDelay: '550ms', willChange: 'transform, opacity' }}
         >
-          <video
-            src="/video2.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-auto block"
-          />
+          <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto block" />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Contact section content ──────────────────────────────────────────────────
-// contactInner: 0 = just locked, 2 = fully animated (maps CONTACT_SLIDE_END→CONTACT_CONTENT_END)
-// Sequence: fire-glow rises up from below the frame and brightens -> heading reveals word-by-word -> subtext fades in -> button appears last
 function ContactSectionContent({ contactInner }: { contactInner: number }) {
   const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
   const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => {
@@ -925,59 +1124,31 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
     return o0 + (o1 - o0) * p;
   };
 
-  // Glow: rises up from below the viewport and brightens as it climbs.
-  // translateY goes from fully offscreen (100%) to in place (0%), so it visibly
-  // travels upward into frame rather than just fading where it sits.
   const glowTranslateY = mr(contactInner, 0.0, 1.3, 100, 0);
   const glowOpacity     = mr(contactInner, 0.0, 0.5, 0,   1);
-  const glowBrightness  = mr(contactInner, 0.4, 1.6, 0.55, 1); // continues intensifying after it arrives
+  const glowBrightness  = mr(contactInner, 0.4, 1.6, 0.55, 1);
 
-  // Heading reveal (word by word, like other sections)
   const headingScale   = mr(contactInner, 0.0, 0.5, 1.6, 1);
   const headingOpacity = mr(contactInner, 0.0, 0.35, 0, 1);
   const words = "Contact us to discuss your project".split(' ');
 
-  // Subtext reveal
   const subOpacity = mr(contactInner, 0.45, 0.8, 0, 1);
   const subY       = mr(contactInner, 0.45, 0.8, 14, 0);
 
-  // Button reveals last
   const btnOpacity = mr(contactInner, 0.85, 1.2, 0, 1);
   const btnY       = mr(contactInner, 0.85, 1.2, 16, 0);
   const btnScale    = mr(contactInner, 0.85, 1.2, 0.92, 1);
 
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col">
-
-      {/* Fire glow block — rises up from below frame, brightens as it climbs and settles */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{
-          height: '85%',
-          opacity: glowOpacity,
-          transform: `translateY(${glowTranslateY}%)`,
-          filter: `brightness(${glowBrightness})`,
-          willChange: 'opacity, transform, filter',
-        }}
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none"
+        style={{ height: '85%', opacity: glowOpacity, transform: `translateY(${glowTranslateY}%)`, filter: `brightness(${glowBrightness})`, willChange: 'opacity, transform, filter' }}
       >
-        {/* Wide soft amber base */}
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.85) 0%, rgba(220,100,40,0.55) 32%, rgba(140,60,20,0.22) 55%, transparent 76%)',
-        }} />
-        {/* Mid warm body */}
-        <div className="absolute inset-x-0 bottom-0" style={{
-          height: '60%',
-          background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.9) 0%, rgba(255,130,55,0.6) 38%, transparent 78%)',
-        }} />
-        {/* Hot near-white core at the very bottom edge */}
-        <div className="absolute inset-x-0 bottom-0" style={{
-          height: '30%',
-          background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.95) 0%, rgba(255,200,140,0.7) 40%, transparent 80%)',
-          filter: 'blur(2px)',
-        }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.85) 0%, rgba(220,100,40,0.55) 32%, rgba(140,60,20,0.22) 55%, transparent 76%)' }} />
+        <div className="absolute inset-x-0 bottom-0" style={{ height: '60%', background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.9) 0%, rgba(255,130,55,0.6) 38%, transparent 78%)' }} />
+        <div className="absolute inset-x-0 bottom-0" style={{ height: '30%', background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.95) 0%, rgba(255,200,140,0.7) 40%, transparent 80%)', filter: 'blur(2px)' }} />
       </div>
 
-      {/* Starfield specks */}
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.4 }}>
         {Array.from({ length: 30 }).map((_, i) => {
           const top = (i * 41) % 70;
@@ -994,16 +1165,9 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
       </div>
 
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-5 pb-20">
-
-        {/* Heading */}
         <h2
           className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl"
-          style={{
-            transform: `scale(${headingScale})`,
-            opacity: headingOpacity,
-            transformOrigin: 'center center',
-            willChange: 'transform, opacity',
-          }}
+          style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}
         >
           {words.map((word, i) => {
             const ws = 0.02 + (i / words.length) * 0.35;
@@ -1012,35 +1176,21 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
             const wb = mr(contactInner, ws, we, 10, 0);
             return (
               <React.Fragment key={i}>
-                <span style={{ opacity: wo, filter: `blur(${wb}px)`, display: 'inline-block', willChange: 'opacity, filter' }}>
-                  {word}
-                </span>
+                <span style={{ opacity: wo, filter: `blur(${wb}px)`, display: 'inline-block', willChange: 'opacity, filter' }}>{word}</span>
                 {i !== words.length - 1 && ' '}
               </React.Fragment>
             );
           })}
         </h2>
 
-        {/* Subtext */}
-        <p
-          className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8"
+        <p className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8"
           style={{ opacity: subOpacity, transform: `translateY(${subY}px)`, willChange: 'opacity, transform' }}
         >
           Get in touch with us, and we'll guide you through running your ML model on Gcore Inference at the Edge. Together, we'll explore how our service can benefit you and your users.
         </p>
 
-        {/* Button */}
-        <div
-          style={{
-            opacity: btnOpacity,
-            transform: `translateY(${btnY}px) scale(${btnScale})`,
-            willChange: 'opacity, transform',
-          }}
-        >
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:-translate-y-0.5 transition-all duration-300"
-          >
+        <div style={{ opacity: btnOpacity, transform: `translateY(${btnY}px) scale(${btnScale})`, willChange: 'opacity, transform' }}>
+          <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:-translate-y-0.5 transition-all duration-300">
             Talk to an expert
           </Link>
         </div>
@@ -1049,7 +1199,7 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
   );
 }
 
-// ─── Hero (untouched) ─────────────────────────────────────────────────────────
+// ─── Hero (desktop only, untouched) ──────────────────────────────────────────
 function HeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full h-full flex flex-col items-center justify-center px-6 py-8 bg-[#070708]">
