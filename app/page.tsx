@@ -40,8 +40,24 @@ const FEATURES = [
 
 const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
 
-// Scroll budget constants
-const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 3, DARK_SLIDE_END = 4, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2, TOP_TOTAL_VH = 650, CONTACT_TOTAL_VH = 300;
+// Scroll budget constants — each phase's track length is sized to match what its
+// reveal animation actually needs (plus a small buffer), so there are no dead
+// "scroll with nothing happening" zones between phases, and the dark fundraising
+// cards always finish their full stagger reveal (incl. scale settle) before the
+// section is allowed to unpin and hand off to the next one.
+const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2;
+// Last card's stagger start + the time it takes to finish fading/scaling in.
+const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + 0.45;
+// Extra scroll held *after* the last card is fully revealed, so the section
+// visibly "completes" before it starts moving away — this is what makes the
+// pin feel intentional instead of cutting cards off mid-animation.
+const DARK_CARDS_HOLD = 0.3;
+const TOP_TOTAL_VH = (DARK_SLIDE_END + DARK_CARDS_REVEAL_SPAN + DARK_CARDS_HOLD) * 100;
+const CONTACT_TOTAL_VH = 160;
+// Caps so scroll-driven state stops updating once a section's animation is fully
+// resolved, instead of continuing to re-render off-screen content while scrolling
+// through later sections.
+const SCROLL_PROGRESS_MAX = TOP_TOTAL_VH / 100, CONTACT_PROGRESS_CAP = CONTACT_TOTAL_VH / 100 - 1 + 0.15;
 
 // ─── Utility functions ────────────────────────────────────────────────────────
 const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
@@ -297,18 +313,38 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
 }
 
 // ─── Ambient video (smoother autoplay/pause on visibility) ────────────────────
+// Calls play() when the video enters view and pauses it when it leaves. If the
+// browser rejects the first play() call (commonly because the video hasn't
+// buffered enough yet, not because autoplay is blocked — it's muted), we don't
+// just give up: we wait for the 'canplay' event and retry once. Without this,
+// a single rejected play() attempt left a video frozen on its first frame
+// indefinitely, which is what produced the "stuck" playback.
 function AmbientVideo({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
+    let cancelled = false;
+
+    const tryPlay = () => {
+      if (cancelled || !video.paused) return;
+      void video.play().catch(() => {
+        if (!cancelled) video.addEventListener('canplay', tryPlay, { once: true });
+      });
+    };
+
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { if (video.paused) void video.play().catch(() => undefined); }
+      if (entry.isIntersecting) tryPlay();
       else if (!video.paused) video.pause();
     }, { rootMargin: '250px 0px', threshold: 0.05 });
     observer.observe(video);
-    return () => observer.disconnect();
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      video.removeEventListener('canplay', tryPlay);
+    };
   }, []);
 
   return <video ref={ref} src={src} loop muted playsInline preload="auto" className={className} style={style} />;
@@ -734,14 +770,14 @@ export default function HomePage() {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
-        const next = clamp(window.scrollY / window.innerHeight, 0, 7);
+        const next = clamp(window.scrollY / window.innerHeight, 0, SCROLL_PROGRESS_MAX);
         if (Math.abs(next - scrollProgressRef.current) > 0.004) {
           scrollProgressRef.current = next;
           setScrollProgress(next);
         }
         const el = contactTrackRef.current;
         if (el) {
-          const nextC = clamp(-el.getBoundingClientRect().top / window.innerHeight, -2, 2);
+          const nextC = clamp(-el.getBoundingClientRect().top / window.innerHeight, -2, CONTACT_PROGRESS_CAP);
           if (Math.abs(nextC - contactScrollProgressRef.current) > 0.004) {
             contactScrollProgressRef.current = nextC;
             setContactScrollProgress(nextC);
