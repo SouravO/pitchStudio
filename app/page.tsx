@@ -1,43 +1,17 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Loader from '@/components/layout/Loader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface NodeCfg {
-  id: string;
-  glyph: 'arrow' | 'dot' | 'zigzag' | 'grid' | 'bloom' | 'dotbig';
-  cy: number;
-  cx: number;
-  side: 'left' | 'right';
-  bendX: number;
-  delay: number;
-  pulseDelay: number;
-}
+interface NodeCfg { id: string; glyph: 'arrow' | 'dot' | 'zigzag' | 'grid' | 'bloom' | 'dotbig'; cy: number; cx: number; side: 'left' | 'right'; bendX: number; delay: number; pulseDelay: number; }
+interface CardData { title: string; desc: string; accentColor: string; glowColor: string; visual: string; videoSrc?: string; details?: string[]; compact?: boolean; colSpan?: number; }
 
-interface CardData {
-  title: string;
-  desc: string;
-  accentColor: string;
-  glowColor: string;
-  visual: string;
-  videoSrc?: string;
-  details?: string[];
-  compact?: boolean;
-  colSpan?: number;
-}
 // ─── Constants ────────────────────────────────────────────────────────────────
-const VB_W = 1000;
-const VB_H = 460;
-const CHIP_X = VB_W / 2;
-const CHIP_Y = VB_H / 2 + 6;
-const CHIP_HALF = 56;
-const NODE_HALF = 27;
-const PIN_COUNT = 4;
-const PIN_SPACING = 15;
+const VB_W = 1000, VB_H = 460, CHIP_X = VB_W / 2, CHIP_Y = VB_H / 2 + 6, CHIP_HALF = 56, NODE_HALF = 27, PIN_COUNT = 4, PIN_SPACING = 15;
 
 const NODES: NodeCfg[] = [
   { id: 'n1', glyph: 'arrow',  side: 'left',  cx: 130,        cy: CHIP_Y - 78, bendX: 330,        delay: 0.05, pulseDelay: 0.0  },
@@ -64,20 +38,18 @@ const FEATURES = [
   { icon: 'S.', color: '#7C5CFF', label: 'Term sheet review',    tag: 'Real-time turnaround' },
 ];
 
+const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
+
 // Scroll budget constants
-const WHITE_SLIDE_END      = 1;
-const DARK_SLIDE_START     = 3;
-const DARK_SLIDE_END       = 4;
-const CONTACT_SLIDE_START  = -1;
-const CONTACT_SLIDE_END    = 0;
-const CONTACT_CONTENT_LEAD = 1.2;
-const TOP_TOTAL_VH         = 1150;
-const CONTACT_TOTAL_VH     = 300;
+const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 3, DARK_SLIDE_END = 4, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2, TOP_TOTAL_VH = 650, CONTACT_TOTAL_VH = 300;
 
 // ─── Utility functions ────────────────────────────────────────────────────────
 const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
-const mr = (v: number, i0: number, i1: number, o0: number, o1: number) =>
-  o0 + (o1 - o0) * clamp((v - i0) / (i1 - i0));
+const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => o0 + (o1 - o0) * clamp((v - i0) / (i1 - i0));
+
+function getDarkCardPlacement(idx: number) {
+  return { gridColumn: idx === 0 || idx === 5 ? 'span 6' : 'span 4', gridRow: 'span 2' };
+}
 
 function nodePath(n: NodeCfg): string {
   const chipEdgeX = n.side === 'left' ? CHIP_X - CHIP_HALF : CHIP_X + CHIP_HALF;
@@ -93,10 +65,7 @@ function useIntersection(threshold = 0.15) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold });
     obs.observe(el);
     return () => obs.disconnect();
   }, [threshold]);
@@ -106,65 +75,30 @@ function useIntersection(threshold = 0.15) {
 // ─── Shared UI primitives ─────────────────────────────────────────────────────
 function Badge({ color = '#FF8A3D', children, style }: { color?: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div
-      className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50"
-      style={style}
-    >
+    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50" style={style}>
       <span style={{ color }}>✦</span> {children}
     </div>
   );
 }
 
 function Starfield({ count, maxTop = 100 }: { count: number; maxTop?: number }) {
+  const stars = useMemo(() => Array.from({ length: count }, (_, i) => ({
+    top: `${(i * 41) % maxTop}%`, left: `${(i * 59) % 100}%`, size: (i % 3) + 0.5, opacity: 0.25 + (i % 4) * 0.1,
+  })), [count, maxTop]);
+
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.4 }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{
-          position: 'absolute',
-          top: `${(i * 41) % maxTop}%`,
-          left: `${(i * 59) % 100}%`,
-          width: (i % 3) + 0.5,
-          height: (i % 3) + 0.5,
-          borderRadius: '50%',
-          background: '#EDEAFF',
-          opacity: 0.25 + (i % 4) * 0.1,
-        }} />
-      ))}
+      {stars.map((s, i) => <div key={i} style={{ position: 'absolute', top: s.top, left: s.left, width: s.size, height: s.size, borderRadius: '50%', background: '#EDEAFF', opacity: s.opacity }} />)}
     </div>
   );
 }
 
-function FadeIn({
-  children,
-  visible,
-  delay = 0,
-  type = 'fadeUp',
-  style,
-  className,
-}: {
-  children: React.ReactNode;
-  visible: boolean;
-  delay?: number;
-  type?: 'fadeUp' | 'scale' | 'fadeOnly';
-  style?: React.CSSProperties;
-  className?: string;
+function FadeIn({ children, visible, delay = 0, type = 'fadeUp', style, className }: {
+  children: React.ReactNode; visible: boolean; delay?: number; type?: 'fadeUp' | 'scale' | 'fadeOnly'; style?: React.CSSProperties; className?: string;
 }) {
-  const transforms: Record<string, string> = {
-    fadeUp:   visible ? 'translateY(0)' : 'translateY(14px)',
-    scale:    visible ? 'scale(1)' : 'scale(1.3)',
-    fadeOnly: 'none',
-  };
+  const transforms: Record<string, string> = { fadeUp: visible ? 'translateY(0)' : 'translateY(14px)', scale: visible ? 'scale(1)' : 'scale(1.3)', fadeOnly: 'none' };
   return (
-    <div
-      className={className}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: transforms[type],
-        transition: `opacity 700ms ease-out ${delay}ms, transform 700ms ease-out ${delay}ms`,
-        willChange: 'opacity, transform',
-        ...style,
-      }}
-    >
+    <div className={className} style={{ opacity: visible ? 1 : 0, transform: transforms[type], transition: `opacity 700ms ease-out ${delay}ms, transform 700ms ease-out ${delay}ms`, willChange: 'opacity, transform', ...style }}>
       {children}
     </div>
   );
@@ -173,13 +107,13 @@ function FadeIn({
 function FeatureList({ small }: { small?: boolean }) {
   return (
     <div className="flex flex-col">
-      {FEATURES.map((feat) => (
-        <div key={feat.label} className={`flex items-center justify-between border-b border-[#0A090D]/8 last:border-0 ${small ? 'py-3.5' : 'py-4'}`}>
+      {FEATURES.map((f) => (
+        <div key={f.label} className={`flex items-center justify-between border-b border-[#0A090D]/8 last:border-0 ${small ? 'py-3.5' : 'py-4'}`}>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold w-5 text-center leading-none" style={{ color: feat.color }}>{feat.icon}</span>
-            <span className="text-[#0A090D] text-sm font-medium">{feat.label}</span>
+            <span className="text-sm font-bold w-5 text-center leading-none" style={{ color: f.color }}>{f.icon}</span>
+            <span className="text-[#0A090D] text-sm font-medium">{f.label}</span>
           </div>
-          <span className={`text-[#0A090D]/30 font-mono tracking-widest ${small ? 'text-[10px]' : 'text-xs'}`}>{feat.tag}</span>
+          <span className={`text-[#0A090D]/30 font-mono tracking-widest ${small ? 'text-[10px]' : 'text-xs'}`}>{f.tag}</span>
         </div>
       ))}
     </div>
@@ -196,38 +130,19 @@ function ScrollHint({ visible }: { visible: boolean }) {
 }
 
 function DragHandle({ color = '#EDEAFF' }: { color?: string }) {
-  return (
-    <div style={{
-      position: 'absolute', top: 12, left: '50%',
-      transform: 'translateX(-50%)', width: 48, height: 5,
-      borderRadius: 4, background: color, opacity: 0.1, zIndex: 2,
-    }} />
-  );
+  return <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', width: 48, height: 5, borderRadius: 4, background: color, opacity: 0.1, zIndex: 2 }} />;
 }
 
-function SlidingPanel({
-  zIndex, background, translateY, showHandle, handleColor, children, style,
-}: {
-  zIndex: number;
-  background: string;
-  translateY: number;
-  showHandle: boolean;
-  handleColor?: string;
-  children: React.ReactNode;
-  style?: React.CSSProperties;
+function SlidingPanel({ zIndex, background, translateY, showHandle, handleColor, children, style }: {
+  zIndex: number; background: string; translateY: number; showHandle: boolean; handleColor?: string; children: React.ReactNode; style?: React.CSSProperties;
 }) {
   return (
     <div
       className="absolute inset-x-0 bottom-0 pointer-events-auto flex flex-col"
       style={{
-        height: '100vh',
-        zIndex,
-        background,
-        transform: `translateY(${translateY}%)`,
+        height: '100vh', zIndex, background, transform: `translate3d(0, ${translateY}%, 0)`,
         borderRadius: translateY > 0.5 ? '24px 24px 0 0' : '0px',
-        willChange: 'transform, border-radius',
-        transition: 'border-radius 0.2s ease-out',
-        ...style,
+        willChange: 'transform, border-radius', transition: 'border-radius 0.2s ease-out', ...style,
       }}
     >
       {showHandle && <DragHandle color={handleColor} />}
@@ -240,22 +155,9 @@ function SlidingPanel({
 function CircuitDefs({ prefix }: { prefix: string }) {
   return (
     <defs>
-      <radialGradient id={`pulseGlow${prefix}`} cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="#FF8A3D" stopOpacity="1" />
-        <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
-      </radialGradient>
-      <linearGradient id={`dashGlow${prefix}`} x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" />
-        <stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" />
-        <stop offset="55%" stopColor="#FFB07A" stopOpacity="1" />
-        <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
-      </linearGradient>
-      <linearGradient id={`dashGlowV${prefix}`} x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" />
-        <stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" />
-        <stop offset="55%" stopColor="#FFB07A" stopOpacity="1" />
-        <stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" />
-      </linearGradient>
+      <radialGradient id={`pulseGlow${prefix}`} cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#FF8A3D" stopOpacity="1" /><stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" /></radialGradient>
+      <linearGradient id={`dashGlow${prefix}`} x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" /><stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" /><stop offset="55%" stopColor="#FFB07A" stopOpacity="1" /><stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" /></linearGradient>
+      <linearGradient id={`dashGlowV${prefix}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FF8A3D" stopOpacity="0" /><stop offset="45%" stopColor="#FF8A3D" stopOpacity="1" /><stop offset="55%" stopColor="#FFB07A" stopOpacity="1" /><stop offset="100%" stopColor="#FF8A3D" stopOpacity="0" /></linearGradient>
     </defs>
   );
 }
@@ -267,14 +169,11 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
         <path key={`trace-${n.id}`} d={nodePath(n)} fill="none" stroke="#EDEAFF" strokeOpacity={0.38} strokeWidth={2} strokeLinecap="round" pathLength={1}
           style={{ strokeDasharray: 1, strokeDashoffset: stage >= 5 ? 0 : 1, transition: `stroke-dashoffset 850ms ease-out ${n.delay}s` }} />
       ))}
-      {[-1, 1].map((dir) =>
-        [-1, -0.33, 0.33, 1].map((m, i) => {
-          const y = CHIP_Y + m * 30;
-          const x1 = CHIP_X + dir * CHIP_HALF;
-          return <line key={`sp-${dir}-${i}`} x1={x1} y1={y} x2={x1 + dir * 10} y2={y} stroke="#EDEAFF" strokeOpacity={0.45} strokeWidth={3} strokeLinecap="round"
-            style={{ opacity: stage >= 4 ? 1 : 0, transition: `opacity 400ms ease-out ${0.1 + i * 0.05}s` }} />;
-        })
-      )}
+      {[-1, 1].map((dir) => [-1, -0.33, 0.33, 1].map((m, i) => {
+        const y = CHIP_Y + m * 30, x1 = CHIP_X + dir * CHIP_HALF;
+        return <line key={`sp-${dir}-${i}`} x1={x1} y1={y} x2={x1 + dir * 10} y2={y} stroke="#EDEAFF" strokeOpacity={0.45} strokeWidth={3} strokeLinecap="round"
+          style={{ opacity: stage >= 4 ? 1 : 0, transition: `opacity 400ms ease-out ${0.1 + i * 0.05}s` }} />;
+      }))}
       {Array.from({ length: PIN_COUNT }).map((_, i) => {
         const x = CHIP_X - ((PIN_COUNT - 1) * PIN_SPACING) / 2 + i * PIN_SPACING;
         return <line key={`pin-${i}`} x1={x} y1={CHIP_Y + CHIP_HALF} x2={x} y2={CHIP_Y + CHIP_HALF + 96} stroke="#EDEAFF" strokeOpacity={0.45} strokeWidth={2.5} strokeLinecap="round" pathLength={1}
@@ -287,11 +186,10 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
         </rect>
       ))}
       {stage >= 7 && Array.from({ length: PIN_COUNT }).map((_, i) => {
-        const x = CHIP_X - ((PIN_COUNT - 1) * PIN_SPACING) / 2 + i * PIN_SPACING;
-        const topY = CHIP_Y + CHIP_HALF;
+        const x = CHIP_X - ((PIN_COUNT - 1) * PIN_SPACING) / 2 + i * PIN_SPACING, topY = CHIP_Y + CHIP_HALF;
         return (
           <rect key={`pd-${i}`} x={x - 1.6} y={topY - 14} width={3.2} height={28} rx={1.6} fill={`url(#dashGlowV${prefix})`}>
-            <animateMotion dur="1.5s" begin={`${i * 0.42}s`} repeatCount="indefinite" path={`M 0,0 L 0,96`} />
+            <animateMotion dur="1.5s" begin={`${i * 0.42}s`} repeatCount="indefinite" path="M 0,0 L 0,96" />
             <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.78;1" dur="1.5s" begin={`${i * 0.42}s`} repeatCount="indefinite" />
           </rect>
         );
@@ -311,6 +209,7 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
     </>
   );
 }
+
 // ─── Node glyph icons ─────────────────────────────────────────────────────────
 function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy: number }) {
   const s = '#EDEAFF', op = 0.8;
@@ -338,10 +237,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
           <line x1="16" y1="60" x2="104" y2="60" stroke="#FF8A3D" strokeOpacity={0.18} strokeWidth={0.7} />
           <line x1="60" y1="16" x2="60" y2="104" stroke="#FF8A3D" strokeOpacity={0.14} strokeWidth={0.7} />
           <circle cx="60" cy="60" r="5" fill="#FF8A3D" fillOpacity={0.55} />
-          {[0,60,120,180,240,300].map((deg, i) => {
-            const r = (deg * Math.PI) / 180;
-            return <circle key={i} cx={60 + 30 * Math.cos(r)} cy={60 + 30 * Math.sin(r)} r={2} fill="#FF8A3D" fillOpacity={0.35} />;
-          })}
+          {[0,60,120,180,240,300].map((deg,i)=>{const r=(deg*Math.PI)/180; return <circle key={i} cx={60+30*Math.cos(r)} cy={60+30*Math.sin(r)} r={2} fill="#FF8A3D" fillOpacity={0.35} />;})}
           <circle cx="60" cy="60" r="44" stroke="#FF8A3D" strokeOpacity={0.08} strokeWidth={8} />
         </svg>
       );
@@ -351,12 +247,8 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
           <rect x="32" y="32" width="56" height="56" rx="12" stroke="#7C5CFF" strokeOpacity={0.45} strokeWidth={1.2} />
           <rect x="44" y="44" width="32" height="32" rx="6" fill="#7C5CFF" fillOpacity={0.1} stroke="#7C5CFF" strokeOpacity={0.35} strokeWidth={0.8} />
           <text x="60" y="65" textAnchor="middle" fontSize={13} fill="#7C5CFF" fillOpacity={0.65} fontWeight={700}>VC</text>
-          {[-1,1].map(dir=>[-1,0,1].map((m,i)=>(
-            <line key={`${dir}-${i}`} x1={dir===-1?32:88} y1={60+m*14} x2={dir===-1?20:100} y2={60+m*14} stroke="#7C5CFF" strokeOpacity={0.3} strokeWidth={1} />
-          )))}
-          {[-1,1].map(dir=>[-1,0,1].map((m,i)=>(
-            <line key={`v-${dir}-${i}`} x1={60+m*14} y1={dir===-1?32:88} x2={60+m*14} y2={dir===-1?20:100} stroke="#7C5CFF" strokeOpacity={0.25} strokeWidth={1} />
-          )))}
+          {[-1,1].map(dir=>[-1,0,1].map((m,i)=><line key={`${dir}-${i}`} x1={dir===-1?32:88} y1={60+m*14} x2={dir===-1?20:100} y2={60+m*14} stroke="#7C5CFF" strokeOpacity={0.3} strokeWidth={1} />))}
+          {[-1,1].map(dir=>[-1,0,1].map((m,i)=><line key={`v-${dir}-${i}`} x1={60+m*14} y1={dir===-1?32:88} x2={60+m*14} y2={dir===-1?20:100} stroke="#7C5CFF" strokeOpacity={0.25} strokeWidth={1} />))}
         </svg>
       );
     case 'lock':
@@ -371,18 +263,14 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
     case 'storage':
       return (
         <svg viewBox="0 0 110 110" width={size} height={size} fill="none">
-          {[0,1,2,3].map(i=>(
-            <rect key={i} x={16} y={18+i*20} width={78} height={16} rx={6} stroke="#3DC8FF" strokeOpacity={0.22+i*0.06} strokeWidth={1} fill="#3DC8FF" fillOpacity={0.03+i*0.015} />
-          ))}
+          {[0,1,2,3].map(i=><rect key={i} x={16} y={18+i*20} width={78} height={16} rx={6} stroke="#3DC8FF" strokeOpacity={0.22+i*0.06} strokeWidth={1} fill="#3DC8FF" fillOpacity={0.03+i*0.015} />)}
           {[0,1,2,3].map(i=><circle key={i} cx={82} cy={26+i*20} r={3} fill="#3DC8FF" fillOpacity={0.4} />)}
         </svg>
       );
     case 'model':
       return (
         <svg viewBox="0 0 100 100" width={size-10} height={size-10} fill="none">
-          {([[50,16],[20,70],[80,70]] as [number,number][]).map(([cx,cy],i)=>(
-            <circle key={i} cx={cx} cy={cy} r={9} stroke="#FFD04A" strokeOpacity={0.4} strokeWidth={1} fill="#FFD04A" fillOpacity={0.06} />
-          ))}
+          {([[50,16],[20,70],[80,70]] as [number,number][]).map(([cx,cy],i)=><circle key={i} cx={cx} cy={cy} r={9} stroke="#FFD04A" strokeOpacity={0.4} strokeWidth={1} fill="#FFD04A" fillOpacity={0.06} />)}
           <line x1="50" y1="25" x2="22" y2="61" stroke="#FFD04A" strokeOpacity={0.22} strokeWidth={0.8} />
           <line x1="50" y1="25" x2="78" y2="61" stroke="#FFD04A" strokeOpacity={0.22} strokeWidth={0.8} />
           <line x1="29" y1="70" x2="71" y2="70" stroke="#FFD04A" strokeOpacity={0.22} strokeWidth={0.8} />
@@ -391,9 +279,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
     case 'scale':
       return (
         <svg viewBox="0 0 130 100" width={size+20} height={size} fill="none">
-          {[14,28,44,60,76,92].map((h,i)=>(
-            <rect key={i} x={8+i*18} y={90-h} width={14} height={h} rx={4} fill="#50FFA0" fillOpacity={0.10+i*0.04} stroke="#50FFA0" strokeOpacity={0.28} strokeWidth={0.8} />
-          ))}
+          {[14,28,44,60,76,92].map((h,i)=><rect key={i} x={8+i*18} y={90-h} width={14} height={h} rx={4} fill="#50FFA0" fillOpacity={0.10+i*0.04} stroke="#50FFA0" strokeOpacity={0.28} strokeWidth={0.8} />)}
           <polyline points="15,76 33,62 51,48 69,34 87,20 105,8" stroke="#50FFA0" strokeOpacity={0.45} strokeWidth={1.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
@@ -401,90 +287,77 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
       return (
         <svg viewBox="0 0 130 90" width={size+20} height={size-10} fill="none">
           <rect x="8" y="18" width="114" height="50" rx="10" stroke="#76DC50" strokeOpacity={0.32} strokeWidth={1} />
-          {[0,1,2,3].map(i=>(
-            <rect key={i} x={18+i*24} y={28} width={18} height={30} rx={4} fill="#76DC50" fillOpacity={0.07} stroke="#76DC50" strokeOpacity={0.28} strokeWidth={0.8} />
-          ))}
-          {[14,32,50,68,86,104].map((x,i)=>(
-            <line key={i} x1={x} y1={68} x2={x} y2={76} stroke="#76DC50" strokeOpacity={0.25} strokeWidth={1} />
-          ))}
+          {[0,1,2,3].map(i=><rect key={i} x={18+i*24} y={28} width={18} height={30} rx={4} fill="#76DC50" fillOpacity={0.07} stroke="#76DC50" strokeOpacity={0.28} strokeWidth={0.8} />)}
+          {[14,32,50,68,86,104].map((x,i)=><line key={i} x1={x} y1={68} x2={x} y2={76} stroke="#76DC50" strokeOpacity={0.25} strokeWidth={1} />)}
           <text x="65" y="88" textAnchor="middle" fontSize={8} fill="#76DC50" fillOpacity={0.35} fontWeight={600} fontFamily="monospace">LIVE ANALYTICS</text>
         </svg>
       );
     default: return null;
   }
 }
+
+// ─── Ambient video (smoother autoplay/pause on visibility) ────────────────────
+function AmbientVideo({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { if (video.paused) void video.play().catch(() => undefined); }
+      else if (!video.paused) video.pause();
+    }, { rootMargin: '250px 0px', threshold: 0.05 });
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  return <video ref={ref} src={src} loop muted playsInline preload="auto" className={className} style={style} />;
+}
+
 // ─── Dark card (shared by desktop + mobile) ───────────────────────────────────
-function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details, mobile }: CardData & { height?: string; mobile?: boolean }) {
+const DarkCard = React.memo(function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details, mobile }: CardData & { height?: string; mobile?: boolean }) {
   return (
     <div
-      className="relative rounded-2xl overflow-hidden border border-[#EDEAFF]/[0.07] flex flex-col"
-      style={{
-        height: height ?? 'auto',
-        background: 'linear-gradient(145deg, #111118 0%, #0c0c12 100%)',
-        boxShadow: `0 0 50px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.04)`,
-        ...(mobile ? { minHeight: 110 } : {}),
-      }}
+      className="group relative rounded-2xl overflow-hidden border border-[#EDEAFF]/[0.07] flex flex-col min-h-[180px] md:min-h-0"
+      style={{ height: height ?? 'auto', background: 'linear-gradient(145deg, #111118 0%, #0c0c12 100%)', boxShadow: `0 0 34px ${glowColor}, inset 0 1px 0 rgba(255,255,255,0.04)`, contain: 'layout paint', ...(mobile ? { minHeight: 110 } : {}) }}
     >
-      {videoSrc && (
-        <video src={videoSrc} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: mobile ? 0.4 : 0.55 }} />
-      )}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.78) 0%, rgba(8,8,10,0.45) 38%, rgba(8,8,10,0.55) 100%)' }} />
-      <div className="absolute inset-0 pointer-events-none rounded-2xl"
-        style={{ background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)` }} />
+      {videoSrc && <AmbientVideo src={videoSrc} className="absolute inset-0 w-full h-full object-cover" style={{ opacity: mobile ? 0.4 : 0.55 }} />}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(8,8,10,0.78) 0%, rgba(8,8,10,0.45) 38%, rgba(8,8,10,0.55) 100%)' }} />
+      <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: `radial-gradient(ellipse 90% 55% at 50% 110%, ${accentColor} 0%, transparent 65%)` }} />
       <div className="absolute bottom-0 right-0 pointer-events-none" style={{ opacity: mobile ? 0.25 : 0.35, ...(mobile ? { maxWidth: '45%', overflow: 'hidden' } : {}) }}>
         <CardVisual visual={visual} compact={compact} />
       </div>
-      <div className="relative z-10 p-4 md:p-5 flex flex-col gap-1 md:gap-2" style={{ maxWidth: compact ? '100%' : '72%' }}>
-        <h3 className={`text-[#EDEAFF] font-semibold leading-snug ${compact || mobile ? 'text-sm' : 'text-base lg:text-lg'}`}>{title}</h3>
+      <div className="relative z-10 p-4 md:p-5 lg:p-6 flex flex-col gap-1 md:gap-2" style={{ maxWidth: compact ? '100%' : 'min(78%, 26rem)' }}>
+        <h3 className={`text-[#EDEAFF] font-semibold leading-snug ${compact || mobile ? 'text-sm' : 'text-[clamp(0.95rem,1.05vw,1.2rem)]'}`}>{title}</h3>
         {!compact && <p className="text-[#EDEAFF]/40 md:text-[#EDEAFF]/45 text-xs md:text-sm leading-relaxed">{desc}</p>}
         {!compact && !mobile && details && (
           <ul className="flex flex-col gap-1 mt-2">
-            {details.map((d) => (
-              <li key={d} className="text-[#EDEAFF]/35 text-xs flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-[#EDEAFF]/40 flex-shrink-0" />
-                {d}
-              </li>
-            ))}
+            {details.map((d) => <li key={d} className="text-[#EDEAFF]/35 text-xs flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-[#EDEAFF]/40 flex-shrink-0" />{d}</li>)}
           </ul>
         )}
       </div>
     </div>
   );
-}
+});
+
 // ─── Mobile sections ──────────────────────────────────────────────────────────
-function MobileHeroSection({ stage }: { stage: number }) {
+const MobileHeroSection = React.memo(function MobileHeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]" style={{ overflow: 'hidden' }}>
-      <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{
-        opacity: stage >= 1 ? 0.022 : 0,
-        backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)',
-        backgroundSize: '44px 44px',
-        maskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)',
-      }} />
-      <div className="absolute top-0 right-0 w-[60vw] h-[60vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
-        opacity: stage >= 1 ? 0.7 : 0,
-        background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.28), transparent 60%)',
-        filter: 'blur(30px)',
-      }} />
+      <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{ opacity: stage >= 1 ? 0.022 : 0, backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)', backgroundSize: '44px 44px', maskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse 55% 50% at 50% 28%, black, transparent 100%)' }} />
+      <div className="absolute top-0 right-0 w-[60vw] h-[60vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{ opacity: stage >= 1 ? 0.7 : 0, background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.28), transparent 60%)', filter: 'blur(30px)' }} />
       <div className="relative z-10 w-full flex flex-col items-center text-center">
-        <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)' }}>
+        <div className="flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[9px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out" style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)' }}>
           <span className="text-[#7C5CFF]">✦</span> Now in beta
         </div>
-        <h1 className="font-bold tracking-tight leading-[1.05] text-[2.4rem] mb-4 transition-all duration-[900ms] ease-out"
-          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)' }}>
+        <h1 className="font-bold tracking-tight leading-[1.05] text-[2.4rem] mb-4 transition-all duration-[900ms] ease-out" style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)' }}>
           Where founders{' '}
           <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">meet capital</span>
         </h1>
-        <p className="text-sm font-light text-[#EDEAFF]/45 leading-relaxed mb-6 max-w-xs transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)' }}>
+        <p className="text-sm font-light text-[#EDEAFF]/45 leading-relaxed mb-6 max-w-xs transition-all duration-700 ease-out" style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)' }}>
           Run your fundraise on a platform built for speed, security, and zero wasted time chasing the wrong investors.
         </p>
-        <div className="flex items-center gap-3 mb-8 transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
+        <div className="flex items-center gap-3 mb-8 transition-all duration-700 ease-out" style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
           <Link href="/forms" className="px-5 py-2.5 rounded-full bg-[#7C5CFF] text-white text-sm font-semibold tracking-wide">Get started</Link>
           <Link href="/contact" className="px-5 py-2.5 rounded-full border border-[#EDEAFF]/15 text-[#EDEAFF]/80 text-sm font-medium tracking-wide">Book a demo</Link>
         </div>
@@ -498,19 +371,16 @@ function MobileHeroSection({ stage }: { stage: number }) {
       </div>
     </section>
   );
-}
+});
 
-function MobileWhiteSection() {
+const MobileWhiteSection = React.memo(function MobileWhiteSection() {
   return (
     <div className="w-full bg-white flex flex-col px-5 pt-10 pb-10">
-      <h2 className="text-[#0A090D] text-2xl font-bold tracking-tight text-center leading-tight mb-8">
-        Raise faster with everything in one place
-      </h2>
-      <div className="w-full rounded-[20px] overflow-hidden shadow-xl mb-8"
-        style={{ aspectRatio: '4/3', background: 'radial-gradient(ellipse 70% 55% at 45% 35%, rgba(210,160,120,0.45) 0%, #2a2520 50%, #181410 100%)' }}>
+      <h2 className="text-[#0A090D] text-2xl font-bold tracking-tight text-center leading-tight mb-8">Raise faster with everything in one place</h2>
+      <div className="w-full rounded-[20px] overflow-hidden shadow-xl mb-8" style={{ aspectRatio: '4/3', background: 'radial-gradient(ellipse 70% 55% at 45% 35%, rgba(210,160,120,0.45) 0%, #2a2520 50%, #181410 100%)' }}>
         <div className="relative w-full h-full">
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 36px, rgba(255,255,255,0.02) 36px, rgba(255,255,255,0.02) 37px)' }} />
-          <video src="/video1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
+          <AmbientVideo src="/video1.mp4" className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
           <div className="absolute bottom-4 left-4 right-4 z-10">
             <p className="text-white/75 text-xs font-medium leading-snug">Try the <span className="text-white font-semibold">Founder Dashboard</span> <span className="italic text-white/55">live</span></p>
           </div>
@@ -529,24 +399,20 @@ function MobileWhiteSection() {
       </div>
     </div>
   );
-}
+});
 
-function MobileDarkSection() {
+const MobileDarkSection = React.memo(function MobileDarkSection() {
   return (
     <div className="relative w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C', overflow: 'hidden' }}>
       <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 100% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)' }} />
       <Badge style={{ marginBottom: 16 }}>Fundraising tools</Badge>
-      <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-8 max-w-xs">
-        Unlock your fundraise's full potential
-      </h2>
-      <div className="w-full flex flex-col gap-3">
-        {DARK_CARDS.map((card) => <DarkCard key={card.title} {...card} mobile />)}
-      </div>
+      <h2 className="text-[#EDEAFF] text-2xl font-bold tracking-tight text-center leading-tight mb-8 max-w-xs">Unlock your fundraise's full potential</h2>
+      <div className="w-full flex flex-col gap-3">{DARK_CARDS.map((card) => <DarkCard key={card.title} {...card} mobile />)}</div>
     </div>
   );
-}
+});
 
-function MobileGlobeSection() {
+const MobileGlobeSection = React.memo(function MobileGlobeSection() {
   const { ref, visible } = useIntersection();
   return (
     <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black px-5 pt-10 pb-8" style={{ overflowX: 'hidden' }}>
@@ -559,15 +425,13 @@ function MobileGlobeSection() {
         <FadeIn visible={visible} delay={200} style={{ marginBottom: 24 }}>
           <p className="text-[#EDEAFF]/45 text-sm text-center leading-relaxed">Our network spans more than 160 regions, helping you reach the right investors wherever they're writing checks.</p>
         </FadeIn>
-        <FadeIn visible={visible} delay={350} className="w-full">
-          <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto block rounded-2xl" />
-        </FadeIn>
+        <FadeIn visible={visible} delay={350} className="w-full"><AmbientVideo src="/video2.mp4" className="w-full h-auto block rounded-2xl" /></FadeIn>
       </div>
     </div>
   );
-}
+});
 
-function MobileContactSection() {
+const MobileContactSection = React.memo(function MobileContactSection() {
   const { ref, visible } = useIntersection();
   return (
     <div ref={ref} className="relative w-full overflow-hidden flex flex-col" style={{ background: '#050507', minHeight: '60vh', overflowX: 'hidden' }}>
@@ -590,49 +454,27 @@ function MobileContactSection() {
       </div>
     </div>
   );
-}
+});
 
 // ─── Desktop sections ─────────────────────────────────────────────────────────
-function HeroSection({ stage }: { stage: number }) {
-  const words = "Where founders meet capital".split(' ');
+const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full h-full flex flex-col items-center justify-center px-6 py-8 bg-[#070708]">
-      <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{
-        opacity: stage >= 1 ? 0.035 : 0,
-        backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)',
-        backgroundSize: '44px 44px',
-        maskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)',
-      }} />
-      <div className="absolute pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
-        opacity: stage >= 1 ? 1 : 0,
-        top: '-25%', right: '-45%', width: '140vw', height: '140vw',
-        background: 'linear-gradient(90deg, transparent 0%, transparent 47%, rgba(124,92,255,0.13) 48.7%, rgba(255,150,80,0.6) 50%, rgba(124,92,255,0.13) 51.3%, transparent 53%, transparent 100%)',
-        transform: 'rotate(27deg)', filter: 'blur(12px)',
-        maskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)',
-      }} />
-      <div className="absolute -top-10 -right-10 w-[50vw] h-[50vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{
-        opacity: stage >= 1 ? 0.9 : 0,
-        background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.3), transparent 60%)',
-        filter: 'blur(50px)',
-      }} />
+      <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{ opacity: stage >= 1 ? 0.035 : 0, backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)', backgroundSize: '44px 44px', maskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)' }} />
+      <div className="absolute pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{ opacity: stage >= 1 ? 1 : 0, top: '-25%', right: '-45%', width: '140vw', height: '140vw', background: 'linear-gradient(90deg, transparent 0%, transparent 47%, rgba(124,92,255,0.13) 48.7%, rgba(255,150,80,0.6) 50%, rgba(124,92,255,0.13) 51.3%, transparent 53%, transparent 100%)', transform: 'rotate(27deg)', filter: 'blur(12px)', maskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)', WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)' }} />
+      <div className="absolute -top-10 -right-10 w-[50vw] h-[50vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{ opacity: stage >= 1 ? 0.9 : 0, background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.3), transparent 60%)', filter: 'blur(50px)' }} />
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center pt-[5vh]">
-        <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)', filter: stage >= 1 ? 'blur(0px)' : 'blur(6px)' }}>
+        <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out" style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)', filter: stage >= 1 ? 'blur(0px)' : 'blur(6px)' }}>
           <span className="text-[#7C5CFF]">✦</span> Now in beta
         </div>
-        <h1 className="font-bold tracking-tight leading-[1.05] text-[10vw] sm:text-5xl md:text-[3.4rem] lg:text-[3.8rem] mb-3 transition-all duration-[900ms] ease-out"
-          style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)', filter: stage >= 1 ? 'blur(0px)' : 'blur(10px)' }}>
+        <h1 className="font-bold tracking-tight leading-[1.05] text-[10vw] sm:text-5xl md:text-[3.4rem] lg:text-[3.8rem] mb-3 transition-all duration-[900ms] ease-out" style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.97)', filter: stage >= 1 ? 'blur(0px)' : 'blur(10px)' }}>
           Where founders{' '}
           <span className="bg-gradient-to-br from-[#EDEAFF] via-[#EDEAFF] to-[#7C5CFF] bg-clip-text text-transparent">meet capital</span>
         </h1>
-        <p className="max-w-lg text-sm md:text-base font-light text-[#EDEAFF]/45 leading-relaxed mb-5 transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)', filter: stage >= 2 ? 'blur(0px)' : 'blur(6px)' }}>
+        <p className="max-w-lg text-sm md:text-base font-light text-[#EDEAFF]/45 leading-relaxed mb-5 transition-all duration-700 ease-out" style={{ opacity: stage >= 2 ? 1 : 0, transform: stage >= 2 ? 'translateY(0)' : 'translateY(14px)', filter: stage >= 2 ? 'blur(0px)' : 'blur(6px)' }}>
           Run your fundraise on a platform built for speed, security, and zero wasted time chasing the wrong investors.
         </p>
-        <div className="flex items-center gap-3 mb-2 transition-all duration-700 ease-out"
-          style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
+        <div className="flex items-center gap-3 mb-2 transition-all duration-700 ease-out" style={{ opacity: stage >= 3 ? 1 : 0, transform: stage >= 3 ? 'translateY(0)' : 'translateY(14px)' }}>
           <Link href="/forms" className="px-5 py-2.5 rounded-full bg-[#7C5CFF] text-white text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(124,92,255,0.5)] hover:-translate-y-0.5 transition-all duration-300">Get started</Link>
           <Link href="/contact" className="px-5 py-2.5 rounded-full border border-[#EDEAFF]/15 text-[#EDEAFF]/80 text-sm font-medium tracking-wide hover:border-[#EDEAFF]/40 hover:text-[#EDEAFF] transition-all duration-300">Book a demo</Link>
         </div>
@@ -649,44 +491,42 @@ function HeroSection({ stage }: { stage: number }) {
       </div>
     </section>
   );
-}
+});
+
 function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
-  const headingScale   = mr(whiteInner, 0,   0.6, 2.4, 1);
-  const headingOpacity = mr(whiteInner, 0,   0.5, 0,   1);
-  const videoOpacity   = mr(whiteInner, 0.5, 1.0, 0,   1);
-  const videoScale     = mr(whiteInner, 0.5, 1.0, 0.85, 1);
-  const videoTranslY   = mr(whiteInner, 0.5, 1.0, 60,  0);
-  const rightOpacity   = mr(whiteInner, 0.9, 1.4, 0,   1);
-  const rightTranslX   = mr(whiteInner, 0.9, 1.4, 80,  0);
+  const headingScale = mr(whiteInner, 0, 0.6, 2.4, 1);
+  const headingOpacity = mr(whiteInner, 0, 0.5, 0, 1);
+  const videoOpacity = mr(whiteInner, 0.5, 1.0, 0, 1);
+  const videoScale = mr(whiteInner, 0.5, 1.0, 0.85, 1);
+  const videoTranslY = mr(whiteInner, 0.5, 1.0, 60, 0);
+  const rightOpacity = mr(whiteInner, 0.9, 1.4, 0, 1);
+  const rightTranslX = mr(whiteInner, 0.9, 1.4, 80, 0);
   const words = "Raise faster with everything in one place".split(' ');
 
   return (
     <div className="flex-1 w-full flex flex-col justify-center max-w-6xl mx-auto px-6 py-12 lg:py-0">
-      <h2 className="text-[#0A090D] text-[1.8rem] md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-12 lg:mb-20 max-w-2xl mx-auto"
-        style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}>
+      <h2 className="text-[#0A090D] text-[1.8rem] md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-12 lg:mb-20 max-w-2xl mx-auto" style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}>
         {words.map((word, i) => {
           const ws = (i / words.length) * 0.4;
           return (
             <React.Fragment key={i}>
-              <span style={{ opacity: mr(whiteInner, ws, ws + 0.2, 0, 1), filter: `blur(${mr(whiteInner, ws, ws + 0.2, 12, 0)}px)`, display: 'inline-block', willChange: 'opacity, filter' }}>{word}</span>
+              <span style={{ opacity: mr(whiteInner, ws, ws + 0.2, 0, 1), transform: `translate3d(0, ${mr(whiteInner, ws, ws + 0.2, 10, 0)}px, 0)`, display: 'inline-block', willChange: 'opacity, transform' }}>{word}</span>
               {i !== words.length - 1 && ' '}
             </React.Fragment>
           );
         })}
       </h2>
       <div className="flex flex-col lg:flex-row items-center lg:items-start gap-10 lg:gap-16">
-        <div className="w-full max-w-md lg:max-w-none lg:w-[42%] flex-shrink-0"
-          style={{ opacity: videoOpacity, transform: `translateY(${videoTranslY}px) scale(${videoScale})`, willChange: 'transform, opacity' }}>
+        <div className="w-full max-w-md lg:max-w-none lg:w-[42%] flex-shrink-0" style={{ opacity: videoOpacity, transform: `translateY(${videoTranslY}px) scale(${videoScale})`, willChange: 'transform, opacity' }}>
           <div className="relative w-full rounded-[20px] overflow-hidden shadow-xl" style={{ aspectRatio: '3/4', background: 'radial-gradient(ellipse 70% 55% at 45% 35%, rgba(210,160,120,0.45) 0%, #2a2520 50%, #181410 100%)' }}>
             <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 36px, rgba(255,255,255,0.02) 36px, rgba(255,255,255,0.02) 37px)' }} />
-            <video src="/video1.mp4" autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
+            <AmbientVideo src="/video1.mp4" className="absolute inset-0 w-full h-full object-cover opacity-55 mix-blend-luminosity" />
             <div className="absolute bottom-5 left-5 right-5 z-10">
               <p className="text-white/75 text-sm font-medium leading-snug">Try the <span className="text-white font-semibold">Founder Dashboard</span> <span className="italic text-white/55">live</span></p>
             </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col justify-center w-full max-w-md lg:max-w-none"
-          style={{ opacity: rightOpacity, transform: `translateX(${rightTranslX}px)`, willChange: 'transform, opacity' }}>
+        <div className="flex-1 flex flex-col justify-center w-full max-w-md lg:max-w-none" style={{ opacity: rightOpacity, transform: `translateX(${rightTranslX}px)`, willChange: 'transform, opacity' }}>
           <p className="text-[#0A090D] text-lg md:text-xl font-semibold leading-snug mb-3">The Founder Dashboard cuts the time between your first investor intro and a signed term sheet.</p>
           <p className="text-[#0A090D]/45 text-sm md:text-base leading-relaxed mb-8">It's built for fast-moving rounds that need immediate follow-up and zero delay, like competitive seed and Series A processes.</p>
           <FeatureList />
@@ -701,59 +541,42 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
     </div>
   );
 }
+
 function DarkSectionContent({ darkInner }: { darkInner: number }) {
-  const badgeOpacity   = mr(darkInner, 0.0, 0.4, 0, 1);
-  const badgeY         = mr(darkInner, 0.0, 0.4, 20, 0);
-  const headingScale   = mr(darkInner, 0.0, 0.7, 2.0, 1);
+  const badgeOpacity = mr(darkInner, 0.0, 0.4, 0, 1);
+  const badgeY = mr(darkInner, 0.0, 0.4, 20, 0);
+  const headingScale = mr(darkInner, 0.0, 0.7, 2.0, 1);
   const headingOpacity = mr(darkInner, 0.0, 0.5, 0, 1);
   const words = "Unlock your fundraise's full potential".split(' ');
-  const cardStarts = [0.6, 1.3, 2.2, 3.1, 4.0, 4.9, 5.8];
   const getCardAnim = useCallback((idx: number) => {
-    const start = cardStarts[idx] ?? 0.6 + idx * 0.4;
-    return {
-      opacity:    mr(darkInner, start, start + 0.45, 0, 1),
-      translateY: mr(darkInner, start, start + 0.45, 72, 0),
-      scale:      mr(darkInner, start, start + 0.45, 0.92, 1),
-    };
+    const start = DARK_CARD_STAGGER[idx] ?? 0.6 + idx * 0.4;
+    return { opacity: mr(darkInner, start, start + 0.35, 0, 1), translateY: mr(darkInner, start, start + 0.35, 40, 0), scale: mr(darkInner, start, start + 0.45, 0.92, 1) };
   }, [darkInner]);
-
-  const rows: [number, number][][] = [[[0,3],[1,2]], [[2,2],[3,2],[4,1]], [[5,3],[6,2]]];
 
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col">
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(124,92,255,0.07) 0%, transparent 65%)' }} />
-      <div className="relative z-10 w-full h-full flex flex-col items-center px-5 pt-6 pb-4 overflow-hidden">
-        <div className="flex items-center gap-2 mb-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 flex-shrink-0"
-          style={{ opacity: badgeOpacity, transform: `translateY(${badgeY}px)`, willChange: 'opacity, transform' }}>
+      <div className="relative z-10 w-full h-full flex flex-col items-center px-5 lg:px-8 pt-6 pb-5 overflow-hidden">
+        <div className="flex items-center gap-2 mb-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 flex-shrink-0" style={{ opacity: badgeOpacity, transform: `translateY(${badgeY}px)`, willChange: 'opacity, transform' }}>
           <span style={{ color: '#FF8A3D' }}>✦</span> Fundraising tools
         </div>
-        <h2 className="text-[#EDEAFF] text-2xl md:text-3xl lg:text-[2.1rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl flex-shrink-0"
-          style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center top', willChange: 'transform, opacity' }}>
+        <h2 className="text-[#EDEAFF] text-2xl md:text-3xl lg:text-[2.25rem] font-bold tracking-tight text-center leading-tight mb-5 max-w-3xl flex-shrink-0" style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center top', willChange: 'transform, opacity' }}>
           {words.map((word, i) => {
             const ws = 0.05 + (i / words.length) * 0.45;
             return (
               <React.Fragment key={i}>
-                <span style={{ opacity: mr(darkInner, ws, ws + 0.18, 0, 1), filter: `blur(${mr(darkInner, ws, ws + 0.18, 10, 0)}px)`, display: 'inline-block', willChange: 'opacity, filter' }}>{word}</span>
+                <span style={{ opacity: mr(darkInner, ws, ws + 0.18, 0, 1), transform: `translate3d(0, ${mr(darkInner, ws, ws + 0.18, 8, 0)}px, 0)`, display: 'inline-block', willChange: 'opacity, transform' }}>{word}</span>
                 {i !== words.length - 1 && ' '}
               </React.Fragment>
             );
           })}
         </h2>
-        <div className="w-full max-w-7xl flex-1 flex flex-col gap-3 min-h-0">
-          {rows.map((row, rowIdx) => {
-            const flexValues = [3, 2.6, 2.4];
+        <div className="fundraising-grid w-full max-w-6xl xl:max-w-7xl flex-1 min-h-0 grid gap-3 lg:gap-4" style={{ gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gridAutoRows: 'minmax(0, 1fr)' }}>
+          {DARK_CARDS.map((card, cardIdx) => {
+            const anim = getCardAnim(cardIdx);
             return (
-              <div key={rowIdx} className="grid grid-cols-5 gap-3" style={{ flex: flexValues[rowIdx], minHeight: 0 }}>
-                {row.map(([cardIdx, colSpan]) => {
-                  const anim = getCardAnim(cardIdx);
-                  const card = DARK_CARDS[cardIdx];
-                  return (
-                    <div key={cardIdx} className={`col-span-${colSpan} h-full`}
-                      style={{ opacity: anim.opacity, transform: `translateY(${anim.translateY}px) scale(${anim.scale})`, willChange: 'transform, opacity' }}>
-                      <DarkCard {...card} height="100%" />
-                    </div>
-                  );
-                })}
+              <div key={card.title} className="fundraising-card h-full min-h-0" style={{ ...getDarkCardPlacement(cardIdx), opacity: anim.opacity, transform: `translate3d(0, ${anim.translateY}px, 0) scale(${anim.scale})`, willChange: 'transform, opacity' }}>
+                <DarkCard {...card} height="100%" />
               </div>
             );
           })}
@@ -763,85 +586,73 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
   );
 }
 
-function GlobeSectionContent() {
+const GlobeSectionContent = React.memo(function GlobeSectionContent() {
   const { ref, visible } = useIntersection(0.25);
   const words = "A truly global network of active investors".split(' ');
   return (
     <div ref={ref} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-24 lg:py-28">
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div key={i} style={{ position: 'absolute', top: `${(i*37)%100}%`, left: `${(i*53)%100}%`, width: (i%3)+0.5, height: (i%3)+0.5, borderRadius: '50%', background: '#EDEAFF', opacity: 0.25+(i%4)*0.1 }} />
-        ))}
+        {Array.from({ length: 40 }).map((_, i) => <div key={i} style={{ position: 'absolute', top: `${(i*37)%100}%`, left: `${(i*53)%100}%`, width: (i%3)+0.5, height: (i%3)+0.5, borderRadius: '50%', background: '#EDEAFF', opacity: 0.25+(i%4)*0.1 }} />)}
       </div>
       <div className="relative z-10 w-full flex flex-col items-center px-5 overflow-hidden">
         <div className="flex flex-col items-center gap-4 md:gap-5">
-          <div className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(16px)', willChange: 'opacity, transform' }}>
+          <div className="flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50 transition-all duration-700 ease-out" style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(16px)', willChange: 'opacity, transform' }}>
             <span style={{ color: '#FF8A3D' }}>✦</span> Investor network
           </div>
-          <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight max-w-2xl transition-all duration-700 ease-out"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.3)', transitionDelay: '80ms', willChange: 'transform, opacity' }}>
+          <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight max-w-2xl transition-all duration-700 ease-out" style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(1.3)', transitionDelay: '80ms', willChange: 'transform, opacity' }}>
             {words.map((word, i) => (
               <React.Fragment key={i}>
-                <span className="inline-block transition-all duration-500 ease-out"
-                  style={{ opacity: visible ? 1 : 0, filter: visible ? 'blur(0px)' : 'blur(10px)', transitionDelay: `${160 + i * 60}ms`, willChange: 'opacity, filter' }}>
-                  {word}
-                </span>
+                <span className="inline-block transition-all duration-500 ease-out" style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(10px)', transitionDelay: `${160 + i * 60}ms`, willChange: 'opacity, transform' }}>{word}</span>
                 {i !== words.length - 1 && ' '}
               </React.Fragment>
             ))}
           </h2>
-          <p className="text-[#EDEAFF]/45 text-sm md:text-base text-center max-w-xl leading-relaxed transition-all duration-700 ease-out"
-            style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(14px)', transitionDelay: '420ms', willChange: 'opacity, transform' }}>
+          <p className="text-[#EDEAFF]/45 text-sm md:text-base text-center max-w-xl leading-relaxed transition-all duration-700 ease-out" style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px)' : 'translateY(14px)', transitionDelay: '420ms', willChange: 'opacity, transform' }}>
             Our network spans more than 160 regions, helping you reach the right investors wherever they're writing checks.
           </p>
         </div>
-        <div className="w-full max-w-2xl xl:max-w-[860px] mt-6 md:mt-8 transition-all duration-700 ease-out"
-          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px) scale(1)' : 'translateY(50px) scale(0.92)', transitionDelay: '550ms', willChange: 'transform, opacity' }}>
-          <video src="/video2.mp4" autoPlay loop muted playsInline className="w-full h-auto max-h-[62vh] object-contain block rounded-2xl" />
+        <div className="w-full max-w-2xl xl:max-w-[860px] mt-6 md:mt-8 transition-all duration-700 ease-out" style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0px) scale(1)' : 'translateY(50px) scale(0.92)', transitionDelay: '550ms', willChange: 'transform, opacity' }}>
+          <AmbientVideo src="/video2.mp4" className="w-full h-auto max-h-[62vh] object-contain block rounded-2xl" />
         </div>
       </div>
     </div>
   );
-}
+});
 
 function ContactSectionContent({ contactInner }: { contactInner: number }) {
   const glowTranslateY = mr(contactInner, 0.0, 1.3, 100, 0);
-  const glowOpacity    = mr(contactInner, 0.0, 0.5, 0,   1);
+  const glowOpacity = mr(contactInner, 0.0, 0.5, 0, 1);
   const glowBrightness = mr(contactInner, 0.4, 1.6, 0.55, 1);
-  const headingScale   = mr(contactInner, 0.0, 0.5, 1.6, 1);
+  const headingScale = mr(contactInner, 0.0, 0.5, 1.6, 1);
   const headingOpacity = mr(contactInner, 0.0, 0.35, 0, 1);
-  const subOpacity     = mr(contactInner, 0.45, 0.8, 0, 1);
-  const subY           = mr(contactInner, 0.45, 0.8, 14, 0);
-  const btnOpacity     = mr(contactInner, 0.85, 1.2, 0, 1);
-  const btnY           = mr(contactInner, 0.85, 1.2, 16, 0);
-  const btnScale       = mr(contactInner, 0.85, 1.2, 0.92, 1);
+  const subOpacity = mr(contactInner, 0.45, 0.8, 0, 1);
+  const subY = mr(contactInner, 0.45, 0.8, 14, 0);
+  const btnOpacity = mr(contactInner, 0.85, 1.2, 0, 1);
+  const btnY = mr(contactInner, 0.85, 1.2, 16, 0);
+  const btnScale = mr(contactInner, 0.85, 1.2, 0.92, 1);
   const words = "Talk to us about your raise".split(' ');
 
   return (
     <div className="relative w-full h-full overflow-hidden flex flex-col">
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{ height: '85%', opacity: glowOpacity, transform: `translateY(${glowTranslateY}%)`, filter: `brightness(${glowBrightness})`, willChange: 'opacity, transform, filter' }}>
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '85%', opacity: glowOpacity * glowBrightness, transform: `translateY(${glowTranslateY}%)`, willChange: 'opacity, transform' }}>
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.85) 0%, rgba(220,100,40,0.55) 32%, rgba(140,60,20,0.22) 55%, transparent 76%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '60%', background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.9) 0%, rgba(255,130,55,0.6) 38%, transparent 78%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '30%', background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.95) 0%, rgba(255,200,140,0.7) 40%, transparent 80%)', filter: 'blur(2px)' }} />
       </div>
       <Starfield count={30} maxTop={70} />
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-5 pb-20">
-        <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl"
-          style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}>
+        <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl" style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}>
           {words.map((word, i) => {
             const ws = 0.02 + (i / words.length) * 0.35;
             return (
               <React.Fragment key={i}>
-                <span style={{ opacity: mr(contactInner, ws, ws + 0.16, 0, 1), filter: `blur(${mr(contactInner, ws, ws + 0.16, 10, 0)}px)`, display: 'inline-block', willChange: 'opacity, filter' }}>{word}</span>
+                <span style={{ opacity: mr(contactInner, ws, ws + 0.16, 0, 1), transform: `translate3d(0, ${mr(contactInner, ws, ws + 0.16, 8, 0)}px, 0)`, display: 'inline-block', willChange: 'opacity, transform' }}>{word}</span>
                 {i !== words.length - 1 && ' '}
               </React.Fragment>
             );
           })}
         </h2>
-        <p className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8"
-          style={{ opacity: subOpacity, transform: `translateY(${subY}px)`, willChange: 'opacity, transform' }}>
+        <p className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8" style={{ opacity: subOpacity, transform: `translateY(${subY}px)`, willChange: 'opacity, transform' }}>
           Get in touch, and we'll walk you through running your fundraise on our platform, from your first investor intro to a closed round.
         </p>
         <div style={{ opacity: btnOpacity, transform: `translateY(${btnY}px) scale(${btnScale})`, willChange: 'opacity, transform' }}>
@@ -853,15 +664,43 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
     </div>
   );
 }
+
+// ─── Global styles (extracted so it isn't recreated on every scroll re-render) ─
+const GlobalStyles = React.memo(function GlobalStyles() {
+  return (
+    <style jsx global>{`
+      @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+      @media (min-width: 768px) and (max-width: 1100px) {
+        .fundraising-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+        .fundraising-card { grid-column: span 3 !important; grid-row: span 2 !important; }
+        .fundraising-card:nth-child(1), .fundraising-card:nth-child(6) { grid-column: span 6 !important; }
+      }
+      @media (max-height: 760px) and (min-width: 768px) {
+        .fundraising-grid { gap: 10px !important; }
+        .fundraising-card p, .fundraising-card li { font-size: 0.72rem !important; line-height: 1.45 !important; }
+      }
+      @media (max-width: 767px) { html, body { overflow-x: hidden; max-width: 100vw; } }
+    `}</style>
+  );
+});
+
+// Memoized wrappers for layout components whose props never change during scroll,
+// so they don't get re-invoked on every scroll-driven re-render.
+const MemoNavbar = React.memo(Navbar);
+const MemoFooter = React.memo(Footer);
+const MemoLoader = React.memo(Loader);
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [loading, setLoading]   = useState(true);
-  const [stage, setStage]       = useState(0);
-  const [scrollProgress, setScrollProgress]         = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [stage, setStage] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [contactScrollProgress, setContactScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const contactTrackRef = useRef<HTMLDivElement>(null);
   const footerTrackRef = useRef<HTMLDivElement>(null);
+  const scrollProgressRef = useRef(0);
+  const contactScrollProgressRef = useRef(0);
   const [hideHero, setHideHero] = useState(false);
 
   useEffect(() => {
@@ -879,96 +718,105 @@ export default function HomePage() {
   useEffect(() => {
     if (loading) return;
     const timers: number[] = [];
-    const s = (n: number, ms: number) => timers.push(window.setTimeout(() => setStage(n), ms));
-    s(1,80); s(2,480); s(3,820); s(4,1150); s(5,1500); s(6,2200); s(7,2700);
+    ([[1, 80], [2, 480], [3, 820], [4, 1150], [5, 1500], [6, 2200], [7, 2700]] as const).forEach(([n, ms]) => timers.push(window.setTimeout(() => setStage(n), ms)));
     return () => timers.forEach(clearTimeout);
   }, [loading]);
 
+  // Scroll tracking only matters for the desktop scroll-jacked layout — mobile
+  // sections never read scrollProgress/contactScrollProgress, so we skip the
+  // listener entirely there. Values are also clamped to the widest range any
+  // animation actually reads, so once scrolled past it state stops updating
+  // and the heavy hero/card tree below stops re-rendering on every frame.
   useEffect(() => {
+    if (isMobile) return;
+    let frame = 0;
     const onScroll = () => {
-      setScrollProgress(window.scrollY / window.innerHeight);
-      const el = contactTrackRef.current;
-      if (el) setContactScrollProgress(-el.getBoundingClientRect().top / window.innerHeight);
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const next = clamp(window.scrollY / window.innerHeight, 0, 7);
+        if (Math.abs(next - scrollProgressRef.current) > 0.004) {
+          scrollProgressRef.current = next;
+          setScrollProgress(next);
+        }
+        const el = contactTrackRef.current;
+        if (el) {
+          const nextC = clamp(-el.getBoundingClientRect().top / window.innerHeight, -2, 2);
+          if (Math.abs(nextC - contactScrollProgressRef.current) > 0.004) {
+            contactScrollProgressRef.current = nextC;
+            setContactScrollProgress(nextC);
+          }
+        }
+      });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [isMobile]);
 
   useEffect(() => {
-    if (isMobile) {
-      setHideHero(false);
-      return;
-    }
+    if (isMobile) { setHideHero(false); return; }
     const el = footerTrackRef.current;
     if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setHideHero(entry.isIntersecting),
-      { threshold: 0.01 }
-    );
-
+    const observer = new IntersectionObserver(([entry]) => setHideHero(entry.isIntersecting), { threshold: 0.01 });
     observer.observe(el);
     return () => observer.disconnect();
   }, [isMobile]);
 
-  const whiteSlideProgress   = clamp((scrollProgress) / WHITE_SLIDE_END);
+  const whiteSlideProgress = clamp(scrollProgress / WHITE_SLIDE_END);
   const whitePanelTranslateY = (1 - whiteSlideProgress) * 100;
-  const darkSlideProgress    = clamp((scrollProgress - DARK_SLIDE_START) / (DARK_SLIDE_END - DARK_SLIDE_START));
-  const darkPanelTranslateY  = (1 - darkSlideProgress) * 100;
+  const darkSlideProgress = clamp((scrollProgress - DARK_SLIDE_START) / (DARK_SLIDE_END - DARK_SLIDE_START));
+  const darkPanelTranslateY = (1 - darkSlideProgress) * 100;
   const contactSlideProgress = clamp((contactScrollProgress - CONTACT_SLIDE_START) / (CONTACT_SLIDE_END - CONTACT_SLIDE_START));
   const contactPanelTranslateY = (1 - contactSlideProgress) * 100;
-  const whiteInner   = scrollProgress - WHITE_SLIDE_END;
-  const darkInner    = scrollProgress - DARK_SLIDE_END;
+  const whiteInner = scrollProgress - WHITE_SLIDE_END;
+  const darkInner = scrollProgress - DARK_SLIDE_END;
   const contactInner = contactScrollProgress - CONTACT_SLIDE_END + CONTACT_CONTENT_LEAD;
-
-  const globalStyle = (
-    <style jsx global>{`
-      @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
-      @media (max-width: 767px) { html, body { overflow-x: hidden; max-width: 100vw; } }
-    `}</style>
-  );
 
   if (isMobile) {
     return (
       <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black" style={{ overflowX: 'hidden', maxWidth: '100vw' }}>
-        <Loader loading={loading} />
-        <div className="relative z-10" style={{ overflowX: 'hidden' }}><Navbar /><MobileHeroSection stage={stage} /></div>
+        <MemoLoader loading={loading} />
+        <div className="relative z-10" style={{ overflowX: 'hidden' }}><MemoNavbar /><MobileHeroSection stage={stage} /></div>
         <div className="relative z-10 bg-white" style={{ overflowX: 'hidden' }}><MobileWhiteSection /></div>
         <div className="relative z-10" style={{ background: '#08080C', overflowX: 'hidden' }}><MobileDarkSection /></div>
         <div className="relative z-10 bg-black" style={{ overflowX: 'hidden' }}><MobileGlobeSection /></div>
         <div className="relative z-10" style={{ background: '#050507', overflowX: 'hidden' }}><MobileContactSection /></div>
-        <div
-          className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"
-          style={{ minHeight: '100svh' }}
-        >
-          <Footer />
+        <div className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]" style={{ minHeight: '100svh' }}>
+          <MemoFooter />
         </div>
-        {globalStyle}
+        <GlobalStyles />
       </div>
     );
   }
+
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
-      <Loader loading={loading} />
+      <MemoLoader loading={loading} />
       <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{ display: hideHero ? 'none' : 'block' }}
+        className="fixed inset-x-0 top-0 z-[200]"
+        style={{
+          transform: scrollProgress > 0.08 ? 'translateY(-110%)' : 'translateY(0)',
+          opacity: scrollProgress > 0.08 ? 0 : 1,
+          pointerEvents: scrollProgress > 0.08 ? 'none' : 'auto',
+          transition: 'transform 360ms ease, opacity 220ms ease',
+          willChange: 'transform, opacity',
+        }}
       >
-        <div className="pointer-events-auto relative z-50"><Navbar /></div>
+        <MemoNavbar />
+      </div>
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ display: hideHero ? 'none' : 'block' }}>
         <div className="w-full h-screen overflow-hidden"><HeroSection stage={stage} /></div>
       </div>
       <div className="relative z-10" style={{ height: `${TOP_TOTAL_VH}vh` }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none">
-          <SlidingPanel zIndex={10} background="white" translateY={whitePanelTranslateY}
-            showHandle={scrollProgress > 0.05 && scrollProgress < WHITE_SLIDE_END - 0.02}
-            handleColor="#0A090D"
-            style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.15)' }}>
+          <SlidingPanel zIndex={10} background="white" translateY={whitePanelTranslateY} showHandle={scrollProgress > 0.05 && scrollProgress < WHITE_SLIDE_END - 0.02} handleColor="#0A090D" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.15)' }}>
             <WhiteSectionContent whiteInner={whiteInner} />
           </SlidingPanel>
-          <SlidingPanel zIndex={20} background="#08080C" translateY={darkPanelTranslateY}
-            showHandle={darkSlideProgress > 0.05 && darkSlideProgress < 0.98}
-            style={{ boxShadow: '0 -12px 80px rgba(0,0,0,0.7)' }}>
+          <SlidingPanel zIndex={20} background="#08080C" translateY={darkPanelTranslateY} showHandle={darkSlideProgress > 0.05 && darkSlideProgress < 0.98} style={{ boxShadow: '0 -12px 80px rgba(0,0,0,0.7)' }}>
             <DarkSectionContent darkInner={darkInner} />
           </SlidingPanel>
         </div>
@@ -976,21 +824,15 @@ export default function HomePage() {
       <div className="relative z-10 bg-black min-h-screen w-full"><GlobeSectionContent /></div>
       <div ref={contactTrackRef} className="relative z-10 bg-black" style={{ height: `${CONTACT_TOTAL_VH}vh` }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none bg-black">
-          <SlidingPanel zIndex={40} background="#050507" translateY={contactPanelTranslateY}
-            showHandle={contactSlideProgress > 0.05 && contactSlideProgress < 0.98}
-            style={{ boxShadow: '0 -12px 80px rgba(0,0,0,0.7)' }}>
+          <SlidingPanel zIndex={40} background="#050507" translateY={contactPanelTranslateY} showHandle={contactSlideProgress > 0.05 && contactSlideProgress < 0.98} style={{ boxShadow: '0 -12px 80px rgba(0,0,0,0.7)' }}>
             <ContactSectionContent contactInner={contactInner} />
           </SlidingPanel>
         </div>
       </div>
-      <div
-        ref={footerTrackRef}
-        className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]"
-        style={{ minHeight: '100svh' }}
-      >
-        <Footer />
+      <div ref={footerTrackRef} className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]" style={{ minHeight: '100svh' }}>
+        <MemoFooter />
       </div>
-      {globalStyle}
+      <GlobalStyles />
     </div>
   );
 }
