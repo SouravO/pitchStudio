@@ -42,9 +42,10 @@ const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
 
 
 const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2;
-const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + 0.45;
+const DARK_CARD_REVEAL_DURATION = 0.65;
+const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + DARK_CARD_REVEAL_DURATION;
 
-const DARK_CARDS_HOLD = 0.3;
+const DARK_CARDS_HOLD = 1.15;
 const TOP_TOTAL_VH = (DARK_SLIDE_END + DARK_CARDS_REVEAL_SPAN + DARK_CARDS_HOLD) * 100;
 const CONTACT_TOTAL_VH = 160;
 
@@ -587,7 +588,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const words = "Unlock your fundraise's full potential".split(' ');
   const getCardAnim = useCallback((idx: number) => {
     const start = DARK_CARD_STAGGER[idx] ?? 0.6 + idx * 0.4;
-    return { opacity: mr(darkInner, start, start + 0.35, 0, 1), translateY: mr(darkInner, start, start + 0.35, 40, 0), scale: mr(darkInner, start, start + 0.45, 0.92, 1) };
+    return { opacity: mr(darkInner, start, start + DARK_CARD_REVEAL_DURATION, 0, 1), translateY: mr(darkInner, start, start + DARK_CARD_REVEAL_DURATION, 44, 0), scale: mr(darkInner, start, start + DARK_CARD_REVEAL_DURATION, 0.92, 1) };
   }, [darkInner]);
 
   return (
