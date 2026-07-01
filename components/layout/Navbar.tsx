@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 const navLinks = [
   { href: '/', label: 'HOME' },
@@ -12,13 +11,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -32,7 +25,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[100] flex items-center justify-between px-6 md:px-10 py-2 backdrop-blur bg-black/50">
+      <nav className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between px-6 md:px-10 py-2 bg-transparent backdrop-blur-0">
         {/* Logo */}
         <Link href="/" className="flex items-center no-underline pr-4" onClick={() => setMenuOpen(false)}>
           <img src="/assets/logo.png" alt="Logo" width={70} height={70} className="md:w-[80px] md:h-[80px] object-contain" />
@@ -40,22 +33,16 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-xs tracking-wider no-underline pb-1 transition-all duration-200 ${
-                  isActive
-                    ? 'text-white font-bold border-b border-white'
-                    : 'text-neutral-500 font-medium border-b border-transparent hover:text-white'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-xs tracking-wider no-underline pb-1 text-neutral-500 font-medium border-b border-transparent hover:text-white transition-all duration-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
           <Link
             href="/admin/login"
             className="ml-3 text-xs tracking-wider border border-white px-5 py-2 rounded no-underline text-white font-semibold hover:bg-white hover:text-black transition-all duration-200"
@@ -110,30 +97,23 @@ export default function Navbar() {
       >
         {/* Nav links — stacked vertically, centered */}
         <div className="flex flex-col items-center justify-center flex-1 gap-8 pb-20">
-          {navLinks.map((link, i) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="no-underline"
-                style={{
-                  opacity: menuOpen ? 1 : 0,
-                  transform: menuOpen ? 'translateY(0)' : 'translateY(12px)',
-                  transition: `opacity 0.3s ease ${0.06 * i}s, transform 0.3s ease ${0.06 * i}s`,
-                }}
-              >
-                <span
-                  className={`text-[1.6rem] font-bold tracking-widest transition-colors duration-200 ${
-                    isActive ? 'text-white' : 'text-neutral-500'
-                  }`}
-                >
-                  {link.label}
-                </span>
-              </Link>
-            );
-          })}
+          {navLinks.map((link, i) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="no-underline"
+              style={{
+                opacity: menuOpen ? 1 : 0,
+                transform: menuOpen ? 'translateY(0)' : 'translateY(12px)',
+                transition: `opacity 0.3s ease ${0.06 * i}s, transform 0.3s ease ${0.06 * i}s`,
+              }}
+            >
+              <span className="text-[1.6rem] font-bold tracking-widest text-neutral-500 transition-colors duration-200">
+                {link.label}
+              </span>
+            </Link>
+          ))}
 
           {/* Divider */}
           <div

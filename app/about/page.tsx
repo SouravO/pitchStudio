@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform, useInView, Variants } from 'framer-motion';
+import { gsap } from 'gsap';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -120,11 +121,6 @@ function ValueGlyph({ type, color }: { type: string; color: string }) {
 }
 
 // ─── Flowing diagonal shapes (hero ambient background) ──────────────────────
-// A tiled field of pill outlines + plus glyphs that drifts continuously from
-// bottom-right toward top-left. The grid is a "brick" lattice (alternating
-// row offset of half a column-step) and the loop translates by exactly one
-// lattice vector, so the animation tiles perfectly with no visible seam or
-// reset "pop".
 type FlowShape = {
   left: number;
   top: number;
@@ -298,7 +294,7 @@ function HeroSection() {
           transition={{ duration: 0.7, delay: 0.65 }}
           className="text-base md:text-lg text-white/45 font-light leading-relaxed max-w-xl mb-9"
         >
-          Pitch Studio started as a spreadsheet passed between three friends tracking their own fundraise. Today it's the
+          Pitch Studio started as a spreadsheet passed between three friends tracking their own fundraise. Today it&apos;s the
           operating layer hundreds of founders use to run a raise — from first outreach to a signed term sheet.
         </motion.p>
 
@@ -369,8 +365,15 @@ function HeroSection() {
   );
 }
 
-// ─── Section 2: Values card grid (reveal on scroll) ─────────────────────────
-const VALUES: { title: string; desc: string; icon: string; color: string }[] = [
+// ─── Section 2: Values — animated bounce cards ───────────────────────────────
+type ValueItem = {
+  title: string;
+  desc: string;
+  icon: string;
+  color: string;
+};
+
+const VALUES: ValueItem[] = [
   { title: 'Speed', desc: 'Every hour a data room sits unopened is momentum lost. We build for pace, not process.', icon: 'bolt', color: '#FF8A3D' },
   { title: 'Access', desc: 'Great companies come from everywhere. Our network spans 160+ regions so location never gates opportunity.', icon: 'globe', color: '#3DC8FF' },
   { title: 'Trust', desc: 'Bank-grade encryption and granular permissions. Your cap table is not a marketing asset.', icon: 'shield', color: '#E84545' },
@@ -379,47 +382,227 @@ const VALUES: { title: string; desc: string; icon: string; color: string }[] = [
   { title: 'Founder-first', desc: 'Every roadmap decision starts with the same question: does this get a founder to a closed round faster?', icon: 'heart', color: '#50FFA0' },
 ];
 
+// Fan-out transform for each card position (rotate + horizontal offset from center).
+// Same mechanism as the React Bits BounceCards component, just with one more
+// slot to cover all six values instead of five images.
+const VALUE_CARD_TRANSFORMS = [
+  'rotate(-8deg) translate(-500px)',
+  'rotate(4deg) translate(-300px)',
+  'rotate(-4deg) translate(-100px)',
+  'rotate(4deg) translate(100px)',
+  'rotate(-4deg) translate(300px)',
+  'rotate(8deg) translate(500px)',
+];
+
+interface BounceValueCardsProps {
+  className?: string;
+  values: ValueItem[];
+  containerWidth?: number;
+  containerHeight?: number;
+  animationDelay?: number;
+  animationStagger?: number;
+  easeType?: string;
+  transformStyles?: string[];
+  enableHover?: boolean;
+}
+
+function BounceValueCards({
+  className = '',
+  values,
+  containerWidth = 1440,
+  containerHeight = 640,
+  animationDelay = 0.3,
+  animationStagger = 0.08,
+  easeType = 'elastic.out(1, 0.6)',
+  transformStyles = VALUE_CARD_TRANSFORMS,
+  enableHover = true,
+}: BounceValueCardsProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.value-bounce-card',
+        { scale: 0 },
+        {
+          scale: 1,
+          stagger: animationStagger,
+          ease: easeType,
+          delay: animationDelay,
+        }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, [animationStagger, easeType, animationDelay]);
+
+  const getNoRotationTransform = (transformStr: string) => {
+    const hasRotate = /rotate\([\s\S]*?\)/.test(transformStr);
+    if (hasRotate) {
+      return transformStr.replace(/rotate\([\s\S]*?\)/, 'rotate(0deg)');
+    } else if (transformStr === 'none') {
+      return 'rotate(0deg)';
+    } else {
+      return `${transformStr} rotate(0deg)`;
+    }
+  };
+
+  const getPushedTransform = (baseTransform: string, offsetX: number) => {
+    const translateRegex = /translate\(([-0-9.]+)px\)/;
+    const match = baseTransform.match(translateRegex);
+    if (match) {
+      const currentX = parseFloat(match[1]);
+      const newX = currentX + offsetX;
+      return baseTransform.replace(translateRegex, `translate(${newX}px)`);
+    } else {
+      return baseTransform === 'none' ? `translate(${offsetX}px)` : `${baseTransform} translate(${offsetX}px)`;
+    }
+  };
+
+  const pushSiblings = (hoveredIdx: number) => {
+    if (!enableHover || !containerRef.current) return;
+    const q = gsap.utils.selector(containerRef);
+    values.forEach((_, i) => {
+      const selector = q(`.value-card-${i}`);
+      gsap.killTweensOf(selector);
+      const baseTransform = transformStyles[i] || 'none';
+
+      if (i === hoveredIdx) {
+        const noRotation = getNoRotationTransform(baseTransform);
+        gsap.to(selector, {
+          transform: noRotation,
+          duration: 0.4,
+          ease: 'back.out(1.4)',
+          overwrite: 'auto',
+        });
+      } else {
+        const offsetX = i < hoveredIdx ? -300 : 300;
+        const pushedTransform = getPushedTransform(baseTransform, offsetX);
+        const distance = Math.abs(hoveredIdx - i);
+        const delay = distance * 0.05;
+
+        gsap.to(selector, {
+          transform: pushedTransform,
+          duration: 0.4,
+          ease: 'back.out(1.4)',
+          delay,
+          overwrite: 'auto',
+        });
+      }
+    });
+  };
+
+  const resetSiblings = () => {
+    if (!enableHover || !containerRef.current) return;
+    const q = gsap.utils.selector(containerRef);
+    values.forEach((_, i) => {
+      const selector = q(`.value-card-${i}`);
+      gsap.killTweensOf(selector);
+      const baseTransform = transformStyles[i] || 'none';
+      gsap.to(selector, {
+        transform: baseTransform,
+        duration: 0.4,
+        ease: 'back.out(1.4)',
+        overwrite: 'auto',
+      });
+    });
+  };
+
+  return (
+    <div className="value-cards-shell w-full overflow-x-auto overflow-y-visible py-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div
+        ref={containerRef}
+        className={`value-cards-stage relative mx-auto flex items-center justify-center ${className}`}
+        style={{
+          width: 'min(90vw, 1480px)',
+          maxWidth: containerWidth,
+          minHeight: containerHeight,
+        }}
+      >
+        {values.map((v, idx) => (
+          <div
+            key={v.title}
+            className={`value-bounce-card value-card-${idx} absolute rounded-3xl border border-white/[0.08] overflow-hidden`}
+            style={{
+              width: 'clamp(250px, 17vw, 350px)',
+              minHeight: 'clamp(300px, 24vw, 390px)',
+              padding: 'clamp(1.25rem, 2vw, 1.75rem)',
+              transform: transformStyles[idx] || 'none',
+              background: 'linear-gradient(160deg, #111118 0%, #0c0c12 100%)',
+              boxShadow: '0 14px 34px rgba(0,0,0,0.5)',
+              transformOrigin: 'center center',
+            }}
+            onMouseEnter={() => pushSiblings(idx)}
+            onMouseLeave={resetSiblings}
+          >
+            <div
+              className="absolute inset-0 pointer-events-none opacity-70"
+              style={{ background: `radial-gradient(circle at 30% 15%, ${v.color}26, transparent 60%)` }}
+            />
+            <div className="relative z-10 flex h-full min-h-[240px] flex-col">
+              <div className="mb-5">
+                <ValueGlyph type={v.icon} color={v.color} />
+              </div>
+              <h3 className="relative z-10 text-xl md:text-2xl font-semibold mb-3 leading-tight">{v.title}</h3>
+              <p className="relative z-10 text-white/45 text-sm md:text-base leading-relaxed max-w-[24ch]">{v.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          .value-cards-shell {
+            overflow-x: visible;
+          }
+
+          .value-cards-stage {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+          }
+
+          .value-bounce-card {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: 100% !important;
+            min-height: 260px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .value-cards-stage {
+            grid-template-columns: 1fr;
+          }
+
+          .value-bounce-card {
+            min-height: 240px !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function ValuesSection() {
   return (
-    <section className="relative bg-[#08080C] px-6 sm:px-10 lg:px-16 py-24 md:py-32 overflow-hidden">
+    <section className="relative bg-[#08080C] px-4 sm:px-8 lg:px-12 py-20 md:py-28 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(124,92,255,0.08) 0%, transparent 65%)' }} />
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.4 }} variants={fadeUp} className="max-w-xl mb-14 md:mb-20">
+      <div className="relative z-10 w-full max-w-[92vw] xl:max-w-[1500px] mx-auto">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.4 }} variants={fadeUp} className="max-w-2xl mb-10 md:mb-14 mx-auto text-center">
           <SectionBadge>Principles</SectionBadge>
-          <h2 className="font-extrabold tracking-tight leading-tight mb-4" style={{ fontSize: 'clamp(1.9rem, 3.4vw, 2.6rem)' }}>
+          <h2 className="font-extrabold tracking-tight leading-tight mb-4" style={{ fontSize: 'clamp(2.2rem, 4vw, 3.4rem)' }}>
             What we stand for
           </h2>
-          <p className="text-white/45 leading-relaxed">
+          <p className="text-white/45 leading-relaxed text-base md:text-lg">
             Six ideas guide every product decision, every investor conversation, and every line of code we ship.
           </p>
         </motion.div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}
-          variants={staggerParent}
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {VALUES.map((v) => (
-            <motion.div
-              key={v.title}
-              variants={cardReveal}
-              className="group relative rounded-2xl border border-white/[0.07] p-7 md:p-8 overflow-hidden"
-              style={{ background: 'linear-gradient(160deg, #111118 0%, #0c0c12 100%)' }}
-            >
-              <div
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: `radial-gradient(circle at 30% 20%, ${v.color}22, transparent 60%)` }}
-              />
-              <div className="relative z-10 mb-6">
-                <ValueGlyph type={v.icon} color={v.color} />
-              </div>
-              <h3 className="relative z-10 text-lg font-semibold mb-2">{v.title}</h3>
-              <p className="relative z-10 text-white/45 text-sm leading-relaxed">{v.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+        <BounceValueCards values={VALUES} />
       </div>
     </section>
   );
@@ -513,7 +696,7 @@ function TeamSection() {
             The people behind it
           </h2>
           <p className="text-white/45 leading-relaxed">
-            A small team of operators, investors, and engineers who've been on both sides of the table.
+            A small team of operators, investors, and engineers who&apos;ve been on both sides of the table.
           </p>
         </motion.div>
 
@@ -619,7 +802,7 @@ function StatsCtaSection() {
             Ready to run your raise with us?
           </h2>
           <p className="text-white/50 leading-relaxed mb-8">
-            Tell us where you are in your raise and we'll walk you through the platform, from first investor intro to a closed round.
+            Tell us where you are in your raise and we&apos;ll walk you through the platform, from first investor intro to a closed round.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
