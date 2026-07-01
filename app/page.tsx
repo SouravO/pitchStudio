@@ -27,8 +27,8 @@ const DARK_CARDS: CardData[] = [
   { title: 'One dashboard for every raise',     desc: 'Manage your cap table, investor updates, and fundraising pipeline from a single, unified workspace.',                                          accentColor: 'rgba(124,92,255,0.18)',  glowColor: 'rgba(124,92,255,0.07)',  visual: 'chip',    videoSrc: '/vid2.mp4', details: ['One unified workspace', 'Live pipeline tracking'], colSpan: 2 },
   { title: 'Confidential by default',          desc: 'Share financials and data rooms with bank-grade encryption, visible only to the people you invite.',                                         accentColor: 'rgba(232,69,69,0.14)',   glowColor: 'rgba(232,69,69,0.06)',   visual: 'lock',    videoSrc: '/vid3.mp4', details: ['End-to-end encrypted data rooms', 'Granular access controls'], colSpan: 2 },
   { title: 'Unlimited document storage',       desc: 'Keep every pitch deck, term sheet, and cap table version in one secure data room that scales with your company.',                            accentColor: 'rgba(61,200,255,0.14)',  glowColor: 'rgba(61,200,255,0.06)',  visual: 'storage', videoSrc: '/vid4.mp4', details: ['Version history for every document', 'Pay only as you grow'], colSpan: 2 },
-  { title: 'Curated investor matches',          desc: 'Get matched with investors from our network or bring your own list.',                                                                       accentColor: 'rgba(255,200,61,0.12)', glowColor: 'rgba(255,200,61,0.05)', visual: 'model',   videoSrc: '/vid5.mp4', compact: true, colSpan: 1 },
-  { title: 'Built to scale with your raise',    desc: 'Run a seed round or a Series C from the same platform. Add seats and tools as your team and round size grow.',                               accentColor: 'rgba(80,255,160,0.10)', glowColor: 'rgba(80,255,160,0.05)', visual: 'scale',   videoSrc: '/vid6.mp4', details: ['Scales from pre-seed to growth stage', 'Pay only for what you use'], colSpan: 3 },
+  { title: 'Curated investor matches',          desc: 'Get matched with investors from our network or bring your own list.',                                                                       accentColor: 'rgba(255,200,61,0.12)', glowColor: 'rgba(255,200,61,0.05)', visual: 'model',   videoSrc: '/vid5.mp4', colSpan: 4 },
+  { title: 'Built to scale with your raise',    desc: 'Run a seed round or a Series C from the same platform. Add seats and tools as your team and round size grow.',                               accentColor: 'rgba(80,255,160,0.10)', glowColor: 'rgba(80,255,160,0.05)', visual: 'scale',   videoSrc: '/vid6.mp4', colSpan: 3 },
   { title: 'Real-time diligence analytics',     desc: 'Track investor engagement on your data room in real time, down to the slide and the minute.',                                               accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu',     videoSrc: '/vid1.mp4', details: ['Slide-by-slide engagement tracking', 'Built for fast-moving diligence'], colSpan: 2 },
 ];
 
@@ -40,31 +40,26 @@ const FEATURES = [
 
 const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
 
-// Scroll budget constants — each phase's track length is sized to match what its
-// reveal animation actually needs (plus a small buffer), so there are no dead
-// "scroll with nothing happening" zones between phases, and the dark fundraising
-// cards always finish their full stagger reveal (incl. scale settle) before the
-// section is allowed to unpin and hand off to the next one.
+
 const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2;
-// Last card's stagger start + the time it takes to finish fading/scaling in.
 const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + 0.45;
-// Extra scroll held *after* the last card is fully revealed, so the section
-// visibly "completes" before it starts moving away — this is what makes the
-// pin feel intentional instead of cutting cards off mid-animation.
+
 const DARK_CARDS_HOLD = 0.3;
 const TOP_TOTAL_VH = (DARK_SLIDE_END + DARK_CARDS_REVEAL_SPAN + DARK_CARDS_HOLD) * 100;
 const CONTACT_TOTAL_VH = 160;
-// Caps so scroll-driven state stops updating once a section's animation is fully
-// resolved, instead of continuing to re-render off-screen content while scrolling
-// through later sections.
+
 const SCROLL_PROGRESS_MAX = TOP_TOTAL_VH / 100, CONTACT_PROGRESS_CAP = CONTACT_TOTAL_VH / 100 - 1 + 0.15;
 
 // ─── Utility functions ────────────────────────────────────────────────────────
 const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
 const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => o0 + (o1 - o0) * clamp((v - i0) / (i1 - i0));
 
+// 3-row bento: each row's spans sum to exactly 12 columns, so the grid
+// fills the full available height/width with no empty background showing.
+// Row 1: network(7) + dashboard(5) | Row 2: confidential(4) + storage(4) + curated(4) | Row 3: scale(8) + gpu(4)
+const DARK_CARD_SPANS = [7, 5, 4, 4, 4, 8, 4];
 function getDarkCardPlacement(idx: number) {
-  return { gridColumn: idx === 0 || idx === 5 ? 'span 6' : 'span 4', gridRow: 'span 2' };
+  return { gridColumn: `span ${DARK_CARD_SPANS[idx] ?? 4}` };
 }
 
 function nodePath(n: NodeCfg): string {
@@ -313,12 +308,7 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
 }
 
 // ─── Ambient video (smoother autoplay/pause on visibility) ────────────────────
-// Calls play() when the video enters view and pauses it when it leaves. If the
-// browser rejects the first play() call (commonly because the video hasn't
-// buffered enough yet, not because autoplay is blocked — it's muted), we don't
-// just give up: we wait for the 'canplay' event and retry once. Without this,
-// a single rejected play() attempt left a video frozen on its first frame
-// indefinitely, which is what produced the "stuck" playback.
+
 function AmbientVideo({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -495,11 +485,11 @@ const MobileContactSection = React.memo(function MobileContactSection() {
 // ─── Desktop sections ─────────────────────────────────────────────────────────
 const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }) {
   return (
-    <section className="relative w-full h-full flex flex-col items-center justify-center px-6 py-8 bg-[#070708]">
+    <section className="relative w-full h-full flex flex-col items-center px-6 bg-[#070708]">
       <div className="absolute inset-0 pointer-events-none transition-opacity duration-[1500ms]" style={{ opacity: stage >= 1 ? 0.035 : 0, backgroundImage: 'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)', backgroundSize: '44px 44px', maskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse 85% 80% at 50% 45%, black, transparent 100%)' }} />
       <div className="absolute pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{ opacity: stage >= 1 ? 1 : 0, top: '-25%', right: '-45%', width: '140vw', height: '140vw', background: 'linear-gradient(90deg, transparent 0%, transparent 47%, rgba(124,92,255,0.13) 48.7%, rgba(255,150,80,0.6) 50%, rgba(124,92,255,0.13) 51.3%, transparent 53%, transparent 100%)', transform: 'rotate(27deg)', filter: 'blur(12px)', maskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)', WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 75% 20%, black 35%, transparent 78%)' }} />
       <div className="absolute -top-10 -right-10 w-[50vw] h-[50vw] pointer-events-none transition-opacity duration-[2000ms] ease-out" style={{ opacity: stage >= 1 ? 0.9 : 0, background: 'radial-gradient(circle at 80% 10%, rgba(255,138,61,0.3), transparent 60%)', filter: 'blur(50px)' }} />
-      <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center pt-[5vh]">
+      <div className="absolute left-1/2 top-[26%] z-20 w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 text-center flex flex-col items-center px-6">
         <div className="flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.03] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/55 transition-all duration-700 ease-out" style={{ opacity: stage >= 1 ? 1 : 0, transform: stage >= 1 ? 'translateY(0)' : 'translateY(10px)', filter: stage >= 1 ? 'blur(0px)' : 'blur(6px)' }}>
           <span className="text-[#7C5CFF]">✦</span> Now in beta
         </div>
@@ -514,12 +504,23 @@ const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }
           <Link href="/forms" className="px-5 py-2.5 rounded-full bg-[#7C5CFF] text-white text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(124,92,255,0.5)] hover:-translate-y-0.5 transition-all duration-300">Get started</Link>
           <Link href="/contact" className="px-5 py-2.5 rounded-full border border-[#EDEAFF]/15 text-[#EDEAFF]/80 text-sm font-medium tracking-wide hover:border-[#EDEAFF]/40 hover:text-[#EDEAFF] transition-all duration-300">Book a demo</Link>
         </div>
-        <div className="w-full" style={{ opacity: stage >= 4 ? 1 : 0, transition: 'opacity 600ms ease-out', filter: stage >= 6 ? 'drop-shadow(0 0 24px rgba(255,138,61,0.25)) drop-shadow(0 0 48px rgba(124,92,255,0.12))' : 'none' }}>
-          <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" style={{ overflow: 'visible' }}>
-            <CircuitDefs prefix="" />
-            <CircuitSVG stage={stage} prefix="" />
-          </svg>
-        </div>
+      </div>
+      <div
+        className="absolute left-1/2 top-[56%] z-10 mx-auto -translate-x-1/2 -translate-y-1/2"
+        style={{
+          width: '80vw',
+          maxWidth: '1800px',
+          aspectRatio: `${VB_W} / ${VB_H}`,
+          maxHeight: '80vh',
+          opacity: stage >= 4 ? 1 : 0,
+          transition: 'opacity 600ms ease-out',
+          filter: stage >= 6 ? 'drop-shadow(0 0 24px rgba(255,138,61,0.25)) drop-shadow(0 0 48px rgba(124,92,255,0.12))' : 'none',
+        }}
+      >
+        <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-full block" style={{ overflow: 'visible' }}>
+          <CircuitDefs prefix="" />
+          <CircuitSVG stage={stage} prefix="" />
+        </svg>
       </div>
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-opacity duration-700" style={{ opacity: stage >= 7 ? 1 : 0 }}>
         <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#EDEAFF]/30">scroll</span>
@@ -607,7 +608,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
             );
           })}
         </h2>
-        <div className="fundraising-grid w-full max-w-6xl xl:max-w-7xl flex-1 min-h-0 grid gap-3 lg:gap-4" style={{ gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gridAutoRows: 'minmax(0, 1fr)' }}>
+        <div className="fundraising-grid w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1500px] flex-1 min-h-0 grid gap-3 lg:gap-4" style={{ gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', gridTemplateRows: 'repeat(3, minmax(0, 1fr))' }}>
           {DARK_CARDS.map((card, cardIdx) => {
             const anim = getCardAnim(cardIdx);
             return (
@@ -707,8 +708,8 @@ const GlobalStyles = React.memo(function GlobalStyles() {
     <style jsx global>{`
       @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
       @media (min-width: 768px) and (max-width: 1100px) {
-        .fundraising-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
-        .fundraising-card { grid-column: span 3 !important; grid-row: span 2 !important; }
+        .fundraising-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; grid-template-rows: repeat(5, minmax(0, 1fr)) !important; }
+        .fundraising-card { grid-column: span 3 !important; }
         .fundraising-card:nth-child(1), .fundraising-card:nth-child(6) { grid-column: span 6 !important; }
       }
       @media (max-height: 760px) and (min-width: 768px) {
@@ -758,11 +759,7 @@ export default function HomePage() {
     return () => timers.forEach(clearTimeout);
   }, [loading]);
 
-  // Scroll tracking only matters for the desktop scroll-jacked layout — mobile
-  // sections never read scrollProgress/contactScrollProgress, so we skip the
-  // listener entirely there. Values are also clamped to the widest range any
-  // animation actually reads, so once scrolled past it state stops updating
-  // and the heavy hero/card tree below stops re-rendering on every frame.
+  
   useEffect(() => {
     if (isMobile) return;
     let frame = 0;
