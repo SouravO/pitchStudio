@@ -671,8 +671,8 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
   const words = "Talk to us about your raise".split(' ');
 
   return (
-    <div className="relative w-full h-full overflow-hidden flex flex-col">
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '85%', opacity: glowOpacity * glowBrightness, transform: `translateY(${glowTranslateY}%)`, willChange: 'opacity, transform' }}>
+    <div className="relative isolate w-full h-full overflow-hidden flex flex-col bg-[#050507]" style={{ transform: 'translateZ(0)' }}>
+      <div className="absolute bottom-0 pointer-events-none" style={{ left: '-18vw', right: '-18vw', height: '85%', opacity: glowOpacity * glowBrightness, transform: `translate3d(0, ${glowTranslateY}%, 0)`, willChange: 'opacity, transform' }}>
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.85) 0%, rgba(220,100,40,0.55) 32%, rgba(140,60,20,0.22) 55%, transparent 76%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '60%', background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.9) 0%, rgba(255,130,55,0.6) 38%, transparent 78%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '30%', background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.95) 0%, rgba(255,200,140,0.7) 40%, transparent 80%)', filter: 'blur(2px)' }} />
@@ -809,6 +809,7 @@ export default function HomePage() {
   const whiteInner = scrollProgress - WHITE_SLIDE_END;
   const darkInner = scrollProgress - DARK_SLIDE_END;
   const contactInner = contactScrollProgress - CONTACT_SLIDE_END + CONTACT_CONTENT_LEAD;
+  const shouldHideHero = hideHero || contactScrollProgress > -0.25;
 
   if (isMobile) {
     return (
@@ -842,7 +843,7 @@ export default function HomePage() {
       >
         <MemoNavbar />
       </div>
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{ display: hideHero ? 'none' : 'block' }}>
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ display: shouldHideHero ? 'none' : 'block' }}>
         <div className="w-full h-screen overflow-hidden"><HeroSection stage={stage} /></div>
       </div>
       <div className="relative z-10" style={{ height: `${TOP_TOTAL_VH}vh` }}>
