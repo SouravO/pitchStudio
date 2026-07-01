@@ -1,18 +1,80 @@
 'use client';
 
+/* ================================================================================
+   HOME PAGE — SECTION MAP
+   --------------------------------------------------------------------------------
+   This file is split into clearly labeled, independent sections. Each section
+   owns one piece of the page (a component, a data set, or a group of helpers)
+   and can be found, read, and replaced on its own without touching anything
+   else. Search for "SECTION" to jump straight to any part of the file.
+
+     1.  IMPORTS
+     2.  TYPES
+     3.  CONSTANTS · Layout & chip/node geometry
+     4.  CONSTANTS · Circuit node config (NODES)
+     5.  CONSTANTS · Dark bento cards data (DARK_CARDS)
+     6.  CONSTANTS · Feature list data (FEATURES)
+     7.  CONSTANTS · Dark card stagger timing (DARK_CARD_STAGGER)
+     8.  CONSTANTS · Scroll / slide timing
+     9.  UTILITY FUNCTIONS · clamp, mr (range-mapping)
+     10. HELPERS · Bento grid column spans + placement
+     11. HELPERS · Circuit trace path builder (nodePath)
+     12. HOOKS · useIntersection
+     13. UI PRIMITIVES · Badge, Starfield, FadeIn, FeatureList, ScrollHint, DragHandle, SlidingPanel
+     14. CIRCUIT SVG · CircuitDefs, CircuitSVG
+     15. CIRCUIT SVG · NodeGlyph icons
+     16. CARD VISUALS · CardVisual (per-card decorative SVGs)
+     17. MEDIA · AmbientVideo (autoplay/pause on visibility)
+     18. CARDS · DarkCard (shared bento card, desktop + mobile)
+     19. MOBILE PAGE SECTIONS
+           19a. Mobile Hero
+           19b. Mobile White / Founder Dashboard
+           19c. Mobile Dark / Fundraising tools
+           19d. Mobile Globe / Investor network
+           19e. Mobile Contact
+     20. DESKTOP PAGE SECTIONS
+           20a. Desktop Hero
+           20b. Desktop White / Founder Dashboard content
+           20c. Desktop Dark / Fundraising tools content
+           20d. Desktop Globe / Investor network content
+           20e. Desktop Contact content
+     21. GLOBAL STYLES
+     22. MEMOIZED LAYOUT WRAPPERS (Navbar / Footer / Loader)
+     23. ROOT · HomePage (default export — assembles mobile vs desktop layouts)
+
+   NOTE ON ORDER: sections 3–8 (constants) are intentionally kept in their
+   original relative order. Some of these constants are computed from earlier
+   ones the moment the module loads (e.g. DARK_CARDS_REVEAL_SPAN reads
+   DARK_CARD_STAGGER, TOP_TOTAL_VH reads DARK_CARDS_REVEAL_SPAN). Reordering
+   those specific lines would break the page, so they stay grouped and in
+   sequence even though they're visually split into sub-sections below.
+================================================================================ */
+
+// ================================================================================
+// SECTION 1 — IMPORTS
+// ================================================================================
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Loader from '@/components/layout/Loader';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 2 — TYPES
+// ================================================================================
 interface NodeCfg { id: string; glyph: 'arrow' | 'dot' | 'zigzag' | 'grid' | 'bloom' | 'dotbig'; cy: number; cx: number; side: 'left' | 'right'; bendX: number; delay: number; pulseDelay: number; }
 interface CardData { title: string; desc: string; accentColor: string; glowColor: string; visual: string; videoSrc?: string; details?: string[]; compact?: boolean; colSpan?: number; }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 3 — CONSTANTS · Layout & chip/node geometry
+// ================================================================================
 const VB_W = 1000, VB_H = 460, CHIP_X = VB_W / 2, CHIP_Y = VB_H / 2 + 6, CHIP_HALF = 56, NODE_HALF = 27, PIN_COUNT = 4, PIN_SPACING = 15;
 
+// ================================================================================
+// SECTION 4 — CONSTANTS · Circuit node config (NODES)
+// Used by: CircuitSVG, NodeGlyph, nodePath (Section 11) — powers the hero circuit
+// diagram animation on both mobile and desktop hero sections.
+// ================================================================================
 const NODES: NodeCfg[] = [
   { id: 'n1', glyph: 'arrow',  side: 'left',  cx: 130,        cy: CHIP_Y - 78, bendX: 330,        delay: 0.05, pulseDelay: 0.0  },
   { id: 'n2', glyph: 'dot',    side: 'left',  cx: 60,         cy: CHIP_Y,      bendX: 0,          delay: 0.18, pulseDelay: 0.85 },
@@ -22,6 +84,10 @@ const NODES: NodeCfg[] = [
   { id: 'n6', glyph: 'bloom',  side: 'right', cx: VB_W - 130, cy: CHIP_Y + 92, bendX: VB_W - 300, delay: 0.37, pulseDelay: 2.1  },
 ];
 
+// ================================================================================
+// SECTION 5 — CONSTANTS · Dark bento cards data (DARK_CARDS)
+// Used by: DarkCard (Section 18), MobileDarkSection, DarkSectionContent (Section 20c)
+// ================================================================================
 const DARK_CARDS: CardData[] = [
   { title: 'A network spanning 160+ markets',  desc: 'Connect with active investors and operators across 160+ regions, with deal flow moving in an average of 30 minutes from intro to first call.', accentColor: 'rgba(255,138,61,0.18)',  glowColor: 'rgba(255,138,61,0.07)',  visual: 'globe',   videoSrc: '/vid1.mp4', details: ['160+ regional investor networks', '30-minute average response time', 'Automatic founder-investor matching'], colSpan: 3 },
   { title: 'One dashboard for every raise',     desc: 'Manage your cap table, investor updates, and fundraising pipeline from a single, unified workspace.',                                          accentColor: 'rgba(124,92,255,0.18)',  glowColor: 'rgba(124,92,255,0.07)',  visual: 'chip',    videoSrc: '/vid2.mp4', details: ['One unified workspace', 'Live pipeline tracking'], colSpan: 2 },
@@ -32,15 +98,28 @@ const DARK_CARDS: CardData[] = [
   { title: 'Real-time diligence analytics',     desc: 'Track investor engagement on your data room in real time, down to the slide and the minute.',                                               accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu',     videoSrc: '/vid1.mp4', details: ['Slide-by-slide engagement tracking', 'Built for fast-moving diligence'], colSpan: 2 },
 ];
 
+// ================================================================================
+// SECTION 6 — CONSTANTS · Feature list data (FEATURES)
+// Used by: FeatureList (Section 13) — the row list in the White/Founder Dashboard section
+// ================================================================================
 const FEATURES = [
   { icon: '●',  color: '#FF8A3D', label: 'Investor updates',     tag: 'Sent automatically' },
   { icon: '◎',  color: '#E84545', label: 'Data room access',     tag: 'Multi-investor'      },
   { icon: 'S.', color: '#7C5CFF', label: 'Term sheet review',    tag: 'Real-time turnaround' },
 ];
 
+// ================================================================================
+// SECTION 7 — CONSTANTS · Dark card stagger timing (DARK_CARD_STAGGER)
+// Drives the reveal delay (in "scroll seconds") of each bento card in Section 20c.
+// ================================================================================
 const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
 
 
+// ================================================================================
+// SECTION 8 — CONSTANTS · Scroll / slide timing
+// These values are computed sequentially at module load (later ones depend on
+// earlier ones), so keep this whole block together and in this exact order.
+// ================================================================================
 const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2;
 const DARK_CARD_REVEAL_DURATION = 0.65;
 const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + DARK_CARD_REVEAL_DURATION;
@@ -51,18 +130,26 @@ const CONTACT_TOTAL_VH = 160;
 
 const SCROLL_PROGRESS_MAX = TOP_TOTAL_VH / 100, CONTACT_PROGRESS_CAP = CONTACT_TOTAL_VH / 100 - 1 + 0.15;
 
-// ─── Utility functions ────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 9 — UTILITY FUNCTIONS · clamp, mr (range-mapping)
+// ================================================================================
 const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
 const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => o0 + (o1 - o0) * clamp((v - i0) / (i1 - i0));
 
+// ================================================================================
+// SECTION 10 — HELPERS · Bento grid column spans + placement
 // 3-row bento: each row's spans sum to exactly 12 columns, so the grid
 // fills the full available height/width with no empty background showing.
 // Row 1: network(7) + dashboard(5) | Row 2: confidential(4) + storage(4) + curated(4) | Row 3: scale(8) + gpu(4)
+// ================================================================================
 const DARK_CARD_SPANS = [7, 5, 4, 4, 4, 8, 4];
 function getDarkCardPlacement(idx: number) {
   return { gridColumn: `span ${DARK_CARD_SPANS[idx] ?? 4}` };
 }
 
+// ================================================================================
+// SECTION 11 — HELPERS · Circuit trace path builder (nodePath)
+// ================================================================================
 function nodePath(n: NodeCfg): string {
   const chipEdgeX = n.side === 'left' ? CHIP_X - CHIP_HALF : CHIP_X + CHIP_HALF;
   const nodeEdgeX = n.side === 'left' ? n.cx + NODE_HALF : n.cx - NODE_HALF;
@@ -70,7 +157,9 @@ function nodePath(n: NodeCfg): string {
   return `M ${chipEdgeX},${n.cy <= CHIP_Y ? CHIP_Y - 14 : CHIP_Y + 14} H ${n.bendX} L ${nodeEdgeX},${n.cy}`;
 }
 
-// ─── Shared hooks ─────────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 12 — HOOKS · useIntersection
+// ================================================================================
 function useIntersection(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -84,7 +173,11 @@ function useIntersection(threshold = 0.15) {
   return { ref, visible };
 }
 
-// ─── Shared UI primitives ─────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 13 — UI PRIMITIVES
+// Badge, Starfield, FadeIn, FeatureList, ScrollHint, DragHandle, SlidingPanel
+// Small, reusable building blocks shared across multiple page sections below.
+// ================================================================================
 function Badge({ color = '#FF8A3D', children, style }: { color?: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50" style={style}>
@@ -163,7 +256,11 @@ function SlidingPanel({ zIndex, background, translateY, showHandle, handleColor,
   );
 }
 
-// ─── Circuit SVG shared components ────────────────────────────────────────────
+// ================================================================================
+// SECTION 14 — CIRCUIT SVG · CircuitDefs, CircuitSVG
+// The animated "chip + traces + pulses" graphic under the hero heading, used by
+// both the mobile hero (Section 19a) and desktop hero (Section 20a).
+// ================================================================================
 function CircuitDefs({ prefix }: { prefix: string }) {
   return (
     <defs>
@@ -222,7 +319,10 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
   );
 }
 
-// ─── Node glyph icons ─────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 15 — CIRCUIT SVG · NodeGlyph icons
+// Small icon drawn inside each circuit node square (arrow, dot, zigzag, grid, bloom, dotbig)
+// ================================================================================
 function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy: number }) {
   const s = '#EDEAFF', op = 0.8;
   switch (glyph) {
@@ -236,7 +336,11 @@ function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy:
   }
 }
 
-// ─── Card visuals ─────────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 16 — CARD VISUALS · CardVisual
+// The faint decorative SVG icon drawn in the bottom-right corner of each dark
+// bento card (globe, chip, lock, storage, model, scale, gpu).
+// ================================================================================
 function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) {
   const size = compact ? 90 : 130;
   switch (visual) {
@@ -308,8 +412,10 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
   }
 }
 
-// ─── Ambient video (smoother autoplay/pause on visibility) ────────────────────
-
+// ================================================================================
+// SECTION 17 — MEDIA · AmbientVideo
+// Smoother autoplay/pause on visibility (pauses off-screen videos to save resources)
+// ================================================================================
 function AmbientVideo({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -341,7 +447,9 @@ function AmbientVideo({ src, className, style }: { src: string; className?: stri
   return <video ref={ref} src={src} loop muted playsInline preload="auto" className={className} style={style} />;
 }
 
-// ─── Dark card (shared by desktop + mobile) ───────────────────────────────────
+// ================================================================================
+// SECTION 18 — CARDS · DarkCard (shared by desktop + mobile)
+// ================================================================================
 const DarkCard = React.memo(function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details, mobile }: CardData & { height?: string; mobile?: boolean }) {
   return (
     <div
@@ -367,7 +475,11 @@ const DarkCard = React.memo(function DarkCard({ title, desc, accentColor, glowCo
   );
 });
 
-// ─── Mobile sections ──────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 19 — MOBILE PAGE SECTIONS
+// ================================================================================
+
+// ─── 19a. Mobile Hero ───────────────────────────────────────────────────────────
 const MobileHeroSection = React.memo(function MobileHeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]" style={{ overflow: 'hidden' }}>
@@ -400,6 +512,7 @@ const MobileHeroSection = React.memo(function MobileHeroSection({ stage }: { sta
   );
 });
 
+// ─── 19b. Mobile White / Founder Dashboard ─────────────────────────────────────
 const MobileWhiteSection = React.memo(function MobileWhiteSection() {
   return (
     <div className="w-full bg-white flex flex-col px-5 pt-10 pb-10">
@@ -428,6 +541,7 @@ const MobileWhiteSection = React.memo(function MobileWhiteSection() {
   );
 });
 
+// ─── 19c. Mobile Dark / Fundraising tools ──────────────────────────────────────
 const MobileDarkSection = React.memo(function MobileDarkSection() {
   return (
     <div className="relative w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C', overflow: 'hidden' }}>
@@ -439,6 +553,7 @@ const MobileDarkSection = React.memo(function MobileDarkSection() {
   );
 });
 
+// ─── 19d. Mobile Globe / Investor network ──────────────────────────────────────
 const MobileGlobeSection = React.memo(function MobileGlobeSection() {
   const { ref, visible } = useIntersection();
   return (
@@ -458,6 +573,7 @@ const MobileGlobeSection = React.memo(function MobileGlobeSection() {
   );
 });
 
+// ─── 19e. Mobile Contact ────────────────────────────────────────────────────────
 const MobileContactSection = React.memo(function MobileContactSection() {
   const { ref, visible } = useIntersection();
   return (
@@ -483,7 +599,11 @@ const MobileContactSection = React.memo(function MobileContactSection() {
   );
 });
 
-// ─── Desktop sections ─────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 20 — DESKTOP PAGE SECTIONS
+// ================================================================================
+
+// ─── 20a. Desktop Hero ──────────────────────────────────────────────────────────
 const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full h-full flex flex-col items-center px-6 bg-[#070708]">
@@ -531,6 +651,7 @@ const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }
   );
 });
 
+// ─── 20b. Desktop White / Founder Dashboard content ────────────────────────────
 function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   const headingScale = mr(whiteInner, 0, 0.6, 2.4, 1);
   const headingOpacity = mr(whiteInner, 0, 0.5, 0, 1);
@@ -580,6 +701,7 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   );
 }
 
+// ─── 20c. Desktop Dark / Fundraising tools content ─────────────────────────────
 function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const badgeOpacity = mr(darkInner, 0.0, 0.4, 0, 1);
   const badgeY = mr(darkInner, 0.0, 0.4, 20, 0);
@@ -624,6 +746,7 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
   );
 }
 
+// ─── 20d. Desktop Globe / Investor network content ─────────────────────────────
 const GlobeSectionContent = React.memo(function GlobeSectionContent() {
   const { ref, visible } = useIntersection(0.25);
   const words = "A truly global network of active investors".split(' ');
@@ -657,6 +780,7 @@ const GlobeSectionContent = React.memo(function GlobeSectionContent() {
   );
 });
 
+// ─── 20e. Desktop Contact content ──────────────────────────────────────────────
 function ContactSectionContent({ contactInner }: { contactInner: number }) {
   const glowTranslateY = mr(contactInner, 0.0, 1.3, 100, 0);
   const glowOpacity = mr(contactInner, 0.0, 0.5, 0, 1);
@@ -703,7 +827,10 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
   );
 }
 
-// ─── Global styles (extracted so it isn't recreated on every scroll re-render) ─
+// ================================================================================
+// SECTION 21 — GLOBAL STYLES
+// Extracted so it isn't recreated on every scroll re-render.
+// ================================================================================
 const GlobalStyles = React.memo(function GlobalStyles() {
   return (
     <style jsx global>{`
@@ -722,13 +849,20 @@ const GlobalStyles = React.memo(function GlobalStyles() {
   );
 });
 
+// ================================================================================
+// SECTION 22 — MEMOIZED LAYOUT WRAPPERS (Navbar / Footer / Loader)
 // Memoized wrappers for layout components whose props never change during scroll,
 // so they don't get re-invoked on every scroll-driven re-render.
+// ================================================================================
 const MemoNavbar = React.memo(Navbar);
 const MemoFooter = React.memo(Footer);
 const MemoLoader = React.memo(Loader);
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+// ================================================================================
+// SECTION 23 — ROOT · HomePage (default export)
+// Assembles everything above into the mobile layout or the desktop
+// scroll-driven layout, depending on viewport width.
+// ================================================================================
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState(0);
@@ -811,6 +945,7 @@ export default function HomePage() {
   const contactInner = contactScrollProgress - CONTACT_SLIDE_END + CONTACT_CONTENT_LEAD;
   const shouldHideHero = hideHero || contactScrollProgress > -0.25;
 
+  // ─── Mobile layout branch ─────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black" style={{ overflowX: 'hidden', maxWidth: '100vw' }}>
@@ -828,6 +963,7 @@ export default function HomePage() {
     );
   }
 
+  // ─── Desktop layout branch ────────────────────────────────────────────────
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
       <MemoLoader loading={loading} />
