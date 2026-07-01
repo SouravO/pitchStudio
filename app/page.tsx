@@ -1,80 +1,18 @@
 'use client';
 
-/* ================================================================================
-   HOME PAGE — SECTION MAP
-   --------------------------------------------------------------------------------
-   This file is split into clearly labeled, independent sections. Each section
-   owns one piece of the page (a component, a data set, or a group of helpers)
-   and can be found, read, and replaced on its own without touching anything
-   else. Search for "SECTION" to jump straight to any part of the file.
-
-     1.  IMPORTS
-     2.  TYPES
-     3.  CONSTANTS · Layout & chip/node geometry
-     4.  CONSTANTS · Circuit node config (NODES)
-     5.  CONSTANTS · Dark bento cards data (DARK_CARDS)
-     6.  CONSTANTS · Feature list data (FEATURES)
-     7.  CONSTANTS · Dark card stagger timing (DARK_CARD_STAGGER)
-     8.  CONSTANTS · Scroll / slide timing
-     9.  UTILITY FUNCTIONS · clamp, mr (range-mapping)
-     10. HELPERS · Bento grid column spans + placement
-     11. HELPERS · Circuit trace path builder (nodePath)
-     12. HOOKS · useIntersection
-     13. UI PRIMITIVES · Badge, Starfield, FadeIn, FeatureList, ScrollHint, DragHandle, SlidingPanel
-     14. CIRCUIT SVG · CircuitDefs, CircuitSVG
-     15. CIRCUIT SVG · NodeGlyph icons
-     16. CARD VISUALS · CardVisual (per-card decorative SVGs)
-     17. MEDIA · AmbientVideo (autoplay/pause on visibility)
-     18. CARDS · DarkCard (shared bento card, desktop + mobile)
-     19. MOBILE PAGE SECTIONS
-           19a. Mobile Hero
-           19b. Mobile White / Founder Dashboard
-           19c. Mobile Dark / Fundraising tools
-           19d. Mobile Globe / Investor network
-           19e. Mobile Contact
-     20. DESKTOP PAGE SECTIONS
-           20a. Desktop Hero
-           20b. Desktop White / Founder Dashboard content
-           20c. Desktop Dark / Fundraising tools content
-           20d. Desktop Globe / Investor network content
-           20e. Desktop Contact content
-     21. GLOBAL STYLES
-     22. MEMOIZED LAYOUT WRAPPERS (Navbar / Footer / Loader)
-     23. ROOT · HomePage (default export — assembles mobile vs desktop layouts)
-
-   NOTE ON ORDER: sections 3–8 (constants) are intentionally kept in their
-   original relative order. Some of these constants are computed from earlier
-   ones the moment the module loads (e.g. DARK_CARDS_REVEAL_SPAN reads
-   DARK_CARD_STAGGER, TOP_TOTAL_VH reads DARK_CARDS_REVEAL_SPAN). Reordering
-   those specific lines would break the page, so they stay grouped and in
-   sequence even though they're visually split into sub-sections below.
-================================================================================ */
-
-// ================================================================================
-// SECTION 1 — IMPORTS
-// ================================================================================
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Loader from '@/components/layout/Loader';
 
-// ================================================================================
-// SECTION 2 — TYPES
-// ================================================================================
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface NodeCfg { id: string; glyph: 'arrow' | 'dot' | 'zigzag' | 'grid' | 'bloom' | 'dotbig'; cy: number; cx: number; side: 'left' | 'right'; bendX: number; delay: number; pulseDelay: number; }
 interface CardData { title: string; desc: string; accentColor: string; glowColor: string; visual: string; videoSrc?: string; details?: string[]; compact?: boolean; colSpan?: number; }
 
-// ================================================================================
-// SECTION 3 — CONSTANTS · Layout & chip/node geometry
-// ================================================================================
+// ─── Constants ────────────────────────────────────────────────────────────────
 const VB_W = 1000, VB_H = 460, CHIP_X = VB_W / 2, CHIP_Y = VB_H / 2 + 6, CHIP_HALF = 56, NODE_HALF = 27, PIN_COUNT = 4, PIN_SPACING = 15;
 
-// ================================================================================
-// SECTION 4 — CONSTANTS · Circuit node config (NODES)
-// Used by: CircuitSVG, NodeGlyph, nodePath (Section 11) — powers the hero circuit
-// diagram animation on both mobile and desktop hero sections.
-// ================================================================================
 const NODES: NodeCfg[] = [
   { id: 'n1', glyph: 'arrow',  side: 'left',  cx: 130,        cy: CHIP_Y - 78, bendX: 330,        delay: 0.05, pulseDelay: 0.0  },
   { id: 'n2', glyph: 'dot',    side: 'left',  cx: 60,         cy: CHIP_Y,      bendX: 0,          delay: 0.18, pulseDelay: 0.85 },
@@ -84,10 +22,6 @@ const NODES: NodeCfg[] = [
   { id: 'n6', glyph: 'bloom',  side: 'right', cx: VB_W - 130, cy: CHIP_Y + 92, bendX: VB_W - 300, delay: 0.37, pulseDelay: 2.1  },
 ];
 
-// ================================================================================
-// SECTION 5 — CONSTANTS · Dark bento cards data (DARK_CARDS)
-// Used by: DarkCard (Section 18), MobileDarkSection, DarkSectionContent (Section 20c)
-// ================================================================================
 const DARK_CARDS: CardData[] = [
   { title: 'A network spanning 160+ markets',  desc: 'Connect with active investors and operators across 160+ regions, with deal flow moving in an average of 30 minutes from intro to first call.', accentColor: 'rgba(255,138,61,0.18)',  glowColor: 'rgba(255,138,61,0.07)',  visual: 'globe',   videoSrc: '/vid1.mp4', details: ['160+ regional investor networks', '30-minute average response time', 'Automatic founder-investor matching'], colSpan: 3 },
   { title: 'One dashboard for every raise',     desc: 'Manage your cap table, investor updates, and fundraising pipeline from a single, unified workspace.',                                          accentColor: 'rgba(124,92,255,0.18)',  glowColor: 'rgba(124,92,255,0.07)',  visual: 'chip',    videoSrc: '/vid2.mp4', details: ['One unified workspace', 'Live pipeline tracking'], colSpan: 2 },
@@ -98,29 +32,16 @@ const DARK_CARDS: CardData[] = [
   { title: 'Real-time diligence analytics',     desc: 'Track investor engagement on your data room in real time, down to the slide and the minute.',                                               accentColor: 'rgba(100,220,60,0.10)', glowColor: 'rgba(100,220,60,0.04)', visual: 'gpu',     videoSrc: '/vid1.mp4', details: ['Slide-by-slide engagement tracking', 'Built for fast-moving diligence'], colSpan: 2 },
 ];
 
-// ================================================================================
-// SECTION 6 — CONSTANTS · Feature list data (FEATURES)
-// Used by: FeatureList (Section 13) — the row list in the White/Founder Dashboard section
-// ================================================================================
 const FEATURES = [
   { icon: '●',  color: '#FF8A3D', label: 'Investor updates',     tag: 'Sent automatically' },
   { icon: '◎',  color: '#E84545', label: 'Data room access',     tag: 'Multi-investor'      },
   { icon: 'S.', color: '#7C5CFF', label: 'Term sheet review',    tag: 'Real-time turnaround' },
 ];
 
-// ================================================================================
-// SECTION 7 — CONSTANTS · Dark card stagger timing (DARK_CARD_STAGGER)
-// Drives the reveal delay (in "scroll seconds") of each bento card in Section 20c.
-// ================================================================================
 const DARK_CARD_STAGGER = [0.55, 0.75, 0.95, 1.15, 1.35, 1.55, 1.75];
 
 
-// ================================================================================
-// SECTION 8 — CONSTANTS · Scroll / slide timing
-// These values are computed sequentially at module load (later ones depend on
-// earlier ones), so keep this whole block together and in this exact order.
-// ================================================================================
-const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5, CONTACT_SLIDE_START = -1, CONTACT_SLIDE_END = 0, CONTACT_CONTENT_LEAD = 1.2;
+const WHITE_SLIDE_END = 1, DARK_SLIDE_START = 2.5, DARK_SLIDE_END = 3.5;
 const DARK_CARD_REVEAL_DURATION = 0.65;
 const DARK_CARDS_REVEAL_SPAN = Math.max(...DARK_CARD_STAGGER) + DARK_CARD_REVEAL_DURATION;
 
@@ -130,26 +51,18 @@ const CONTACT_TOTAL_VH = 160;
 
 const SCROLL_PROGRESS_MAX = TOP_TOTAL_VH / 100, CONTACT_PROGRESS_CAP = CONTACT_TOTAL_VH / 100 - 1 + 0.15;
 
-// ================================================================================
-// SECTION 9 — UTILITY FUNCTIONS · clamp, mr (range-mapping)
-// ================================================================================
+// ─── Utility functions ────────────────────────────────────────────────────────
 const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
 const mr = (v: number, i0: number, i1: number, o0: number, o1: number) => o0 + (o1 - o0) * clamp((v - i0) / (i1 - i0));
 
-// ================================================================================
-// SECTION 10 — HELPERS · Bento grid column spans + placement
 // 3-row bento: each row's spans sum to exactly 12 columns, so the grid
 // fills the full available height/width with no empty background showing.
 // Row 1: network(7) + dashboard(5) | Row 2: confidential(4) + storage(4) + curated(4) | Row 3: scale(8) + gpu(4)
-// ================================================================================
 const DARK_CARD_SPANS = [7, 5, 4, 4, 4, 8, 4];
 function getDarkCardPlacement(idx: number) {
   return { gridColumn: `span ${DARK_CARD_SPANS[idx] ?? 4}` };
 }
 
-// ================================================================================
-// SECTION 11 — HELPERS · Circuit trace path builder (nodePath)
-// ================================================================================
 function nodePath(n: NodeCfg): string {
   const chipEdgeX = n.side === 'left' ? CHIP_X - CHIP_HALF : CHIP_X + CHIP_HALF;
   const nodeEdgeX = n.side === 'left' ? n.cx + NODE_HALF : n.cx - NODE_HALF;
@@ -157,9 +70,7 @@ function nodePath(n: NodeCfg): string {
   return `M ${chipEdgeX},${n.cy <= CHIP_Y ? CHIP_Y - 14 : CHIP_Y + 14} H ${n.bendX} L ${nodeEdgeX},${n.cy}`;
 }
 
-// ================================================================================
-// SECTION 12 — HOOKS · useIntersection
-// ================================================================================
+// ─── Shared hooks ─────────────────────────────────────────────────────────────
 function useIntersection(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -173,11 +84,7 @@ function useIntersection(threshold = 0.15) {
   return { ref, visible };
 }
 
-// ================================================================================
-// SECTION 13 — UI PRIMITIVES
-// Badge, Starfield, FadeIn, FeatureList, ScrollHint, DragHandle, SlidingPanel
-// Small, reusable building blocks shared across multiple page sections below.
-// ================================================================================
+// ─── Shared UI primitives ─────────────────────────────────────────────────────
 function Badge({ color = '#FF8A3D', children, style }: { color?: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#EDEAFF]/12 bg-[#EDEAFF]/[0.04] font-mono text-[10px] tracking-[0.2em] uppercase text-[#EDEAFF]/50" style={style}>
@@ -256,11 +163,7 @@ function SlidingPanel({ zIndex, background, translateY, showHandle, handleColor,
   );
 }
 
-// ================================================================================
-// SECTION 14 — CIRCUIT SVG · CircuitDefs, CircuitSVG
-// The animated "chip + traces + pulses" graphic under the hero heading, used by
-// both the mobile hero (Section 19a) and desktop hero (Section 20a).
-// ================================================================================
+// ─── Circuit SVG shared components ────────────────────────────────────────────
 function CircuitDefs({ prefix }: { prefix: string }) {
   return (
     <defs>
@@ -319,10 +222,7 @@ function CircuitSVG({ stage, prefix }: { stage: number; prefix: string }) {
   );
 }
 
-// ================================================================================
-// SECTION 15 — CIRCUIT SVG · NodeGlyph icons
-// Small icon drawn inside each circuit node square (arrow, dot, zigzag, grid, bloom, dotbig)
-// ================================================================================
+// ─── Node glyph icons ─────────────────────────────────────────────────────────
 function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy: number }) {
   const s = '#EDEAFF', op = 0.8;
   switch (glyph) {
@@ -336,11 +236,7 @@ function NodeGlyph({ glyph, cx, cy }: { glyph: NodeCfg['glyph']; cx: number; cy:
   }
 }
 
-// ================================================================================
-// SECTION 16 — CARD VISUALS · CardVisual
-// The faint decorative SVG icon drawn in the bottom-right corner of each dark
-// bento card (globe, chip, lock, storage, model, scale, gpu).
-// ================================================================================
+// ─── Card visuals ─────────────────────────────────────────────────────────────
 function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) {
   const size = compact ? 90 : 130;
   switch (visual) {
@@ -412,10 +308,8 @@ function CardVisual({ visual, compact }: { visual: string; compact?: boolean }) 
   }
 }
 
-// ================================================================================
-// SECTION 17 — MEDIA · AmbientVideo
-// Smoother autoplay/pause on visibility (pauses off-screen videos to save resources)
-// ================================================================================
+// ─── Ambient video (smoother autoplay/pause on visibility) ────────────────────
+
 function AmbientVideo({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -447,9 +341,7 @@ function AmbientVideo({ src, className, style }: { src: string; className?: stri
   return <video ref={ref} src={src} loop muted playsInline preload="auto" className={className} style={style} />;
 }
 
-// ================================================================================
-// SECTION 18 — CARDS · DarkCard (shared by desktop + mobile)
-// ================================================================================
+// ─── Dark card (shared by desktop + mobile) ───────────────────────────────────
 const DarkCard = React.memo(function DarkCard({ title, desc, accentColor, glowColor, visual, height, compact, videoSrc, details, mobile }: CardData & { height?: string; mobile?: boolean }) {
   return (
     <div
@@ -475,11 +367,7 @@ const DarkCard = React.memo(function DarkCard({ title, desc, accentColor, glowCo
   );
 });
 
-// ================================================================================
-// SECTION 19 — MOBILE PAGE SECTIONS
-// ================================================================================
-
-// ─── 19a. Mobile Hero ───────────────────────────────────────────────────────────
+// ─── Mobile sections ──────────────────────────────────────────────────────────
 const MobileHeroSection = React.memo(function MobileHeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full flex flex-col items-center justify-center px-5 pt-16 pb-10 bg-[#070708] min-h-[100svh]" style={{ overflow: 'hidden' }}>
@@ -512,7 +400,6 @@ const MobileHeroSection = React.memo(function MobileHeroSection({ stage }: { sta
   );
 });
 
-// ─── 19b. Mobile White / Founder Dashboard ─────────────────────────────────────
 const MobileWhiteSection = React.memo(function MobileWhiteSection() {
   return (
     <div className="w-full bg-white flex flex-col px-5 pt-10 pb-10">
@@ -541,7 +428,6 @@ const MobileWhiteSection = React.memo(function MobileWhiteSection() {
   );
 });
 
-// ─── 19c. Mobile Dark / Fundraising tools ──────────────────────────────────────
 const MobileDarkSection = React.memo(function MobileDarkSection() {
   return (
     <div className="relative w-full flex flex-col items-center px-4 pt-10 pb-10" style={{ background: '#08080C', overflow: 'hidden' }}>
@@ -553,7 +439,6 @@ const MobileDarkSection = React.memo(function MobileDarkSection() {
   );
 });
 
-// ─── 19d. Mobile Globe / Investor network ──────────────────────────────────────
 const MobileGlobeSection = React.memo(function MobileGlobeSection() {
   const { ref, visible } = useIntersection();
   return (
@@ -573,7 +458,6 @@ const MobileGlobeSection = React.memo(function MobileGlobeSection() {
   );
 });
 
-// ─── 19e. Mobile Contact ────────────────────────────────────────────────────────
 const MobileContactSection = React.memo(function MobileContactSection() {
   const { ref, visible } = useIntersection();
   return (
@@ -599,11 +483,7 @@ const MobileContactSection = React.memo(function MobileContactSection() {
   );
 });
 
-// ================================================================================
-// SECTION 20 — DESKTOP PAGE SECTIONS
-// ================================================================================
-
-// ─── 20a. Desktop Hero ──────────────────────────────────────────────────────────
+// ─── Desktop sections ─────────────────────────────────────────────────────────
 const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }) {
   return (
     <section className="relative w-full h-full flex flex-col items-center px-6 bg-[#070708]">
@@ -651,7 +531,6 @@ const HeroSection = React.memo(function HeroSection({ stage }: { stage: number }
   );
 });
 
-// ─── 20b. Desktop White / Founder Dashboard content ────────────────────────────
 function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   const headingScale = mr(whiteInner, 0, 0.6, 2.4, 1);
   const headingOpacity = mr(whiteInner, 0, 0.5, 0, 1);
@@ -701,7 +580,6 @@ function WhiteSectionContent({ whiteInner }: { whiteInner: number }) {
   );
 }
 
-// ─── 20c. Desktop Dark / Fundraising tools content ─────────────────────────────
 function DarkSectionContent({ darkInner }: { darkInner: number }) {
   const badgeOpacity = mr(darkInner, 0.0, 0.4, 0, 1);
   const badgeY = mr(darkInner, 0.0, 0.4, 20, 0);
@@ -746,12 +624,11 @@ function DarkSectionContent({ darkInner }: { darkInner: number }) {
   );
 }
 
-// ─── 20d. Desktop Globe / Investor network content ─────────────────────────────
 const GlobeSectionContent = React.memo(function GlobeSectionContent() {
   const { ref, visible } = useIntersection(0.25);
   const words = "A truly global network of active investors".split(' ');
   return (
-    <div ref={ref} className="relative w-full min-h-screen overflow-hidden flex flex-col justify-center bg-black py-24 lg:py-28">
+    <div ref={ref} className="relative w-full overflow-hidden flex flex-col bg-black pt-14 md:pt-16 lg:pt-20 pb-6 md:pb-8 lg:pb-10">
       <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.5 }}>
         {Array.from({ length: 40 }).map((_, i) => <div key={i} style={{ position: 'absolute', top: `${(i*37)%100}%`, left: `${(i*53)%100}%`, width: (i%3)+0.5, height: (i%3)+0.5, borderRadius: '50%', background: '#EDEAFF', opacity: 0.25+(i%4)*0.1 }} />)}
       </div>
@@ -780,44 +657,85 @@ const GlobeSectionContent = React.memo(function GlobeSectionContent() {
   );
 });
 
-// ─── 20e. Desktop Contact content ──────────────────────────────────────────────
-function ContactSectionContent({ contactInner }: { contactInner: number }) {
-  const glowTranslateY = mr(contactInner, 0.0, 1.3, 100, 0);
-  const glowOpacity = mr(contactInner, 0.0, 0.5, 0, 1);
-  const glowBrightness = mr(contactInner, 0.4, 1.6, 0.55, 1);
-  const headingScale = mr(contactInner, 0.0, 0.5, 1.6, 1);
-  const headingOpacity = mr(contactInner, 0.0, 0.35, 0, 1);
-  const subOpacity = mr(contactInner, 0.45, 0.8, 0, 1);
-  const subY = mr(contactInner, 0.45, 0.8, 14, 0);
-  const btnOpacity = mr(contactInner, 0.85, 1.2, 0, 1);
-  const btnY = mr(contactInner, 0.85, 1.2, 16, 0);
-  const btnScale = mr(contactInner, 0.85, 1.2, 0.92, 1);
+// ─── Contact section (self-contained scroll-into-view reveal) ─────────────────
+// Height matches the other full-screen sections (min-h-screen), and the warm
+// glow rises up from below the fold the first time this section is scrolled
+// into view, with the heading/copy/button fading up above it.
+const ContactSectionContent = React.memo(function ContactSectionContent() {
+  const { ref, visible } = useIntersection(0.2);
   const words = "Talk to us about your raise".split(' ');
 
   return (
-    <div className="relative isolate w-full h-full overflow-hidden flex flex-col bg-[#050507]" style={{ transform: 'translateZ(0)' }}>
-      <div className="absolute bottom-0 pointer-events-none" style={{ left: '-18vw', right: '-18vw', height: '85%', opacity: glowOpacity * glowBrightness, transform: `translate3d(0, ${glowTranslateY}%, 0)`, willChange: 'opacity, transform' }}>
+    <div
+      ref={ref}
+      className="relative isolate w-full min-h-screen overflow-hidden flex flex-col items-center justify-center bg-[#050507] px-5"
+      style={{ transform: 'translateZ(0)' }}
+    >
+      <div
+        className="absolute bottom-0 pointer-events-none"
+        style={{
+          left: '-18vw',
+          right: '-18vw',
+          height: '85%',
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 100%, 0)',
+          transition: 'opacity 1000ms ease-out, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'opacity, transform',
+        }}
+      >
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,150,70,0.85) 0%, rgba(220,100,40,0.55) 32%, rgba(140,60,20,0.22) 55%, transparent 76%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '60%', background: 'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(255,180,100,0.9) 0%, rgba(255,130,55,0.6) 38%, transparent 78%)' }} />
         <div className="absolute inset-x-0 bottom-0" style={{ height: '30%', background: 'radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,250,240,0.95) 0%, rgba(255,200,140,0.7) 40%, transparent 80%)', filter: 'blur(2px)' }} />
       </div>
       <Starfield count={30} maxTop={70} />
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-5 pb-20">
-        <h2 className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl" style={{ transform: `scale(${headingScale})`, opacity: headingOpacity, transformOrigin: 'center center', willChange: 'transform, opacity' }}>
-          {words.map((word, i) => {
-            const ws = 0.02 + (i / words.length) * 0.35;
-            return (
-              <React.Fragment key={i}>
-                <span style={{ opacity: mr(contactInner, ws, ws + 0.16, 0, 1), transform: `translate3d(0, ${mr(contactInner, ws, ws + 0.16, 8, 0)}px, 0)`, display: 'inline-block', willChange: 'opacity, transform' }}>{word}</span>
-                {i !== words.length - 1 && ' '}
-              </React.Fragment>
-            );
-          })}
+      <div className="relative z-10 w-full flex flex-col items-center">
+        <h2
+          className="text-[#EDEAFF] text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-center leading-tight mb-4 max-w-2xl transition-all duration-700 ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'scale(1)' : 'scale(1.3)',
+            transitionDelay: '80ms',
+            transformOrigin: 'center center',
+            willChange: 'transform, opacity',
+          }}
+        >
+          {words.map((word, i) => (
+            <React.Fragment key={i}>
+              <span
+                className="inline-block transition-all duration-500 ease-out"
+                style={{
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? 'translateY(0)' : 'translateY(10px)',
+                  transitionDelay: `${180 + i * 60}ms`,
+                  willChange: 'opacity, transform',
+                }}
+              >
+                {word}
+              </span>
+              {i !== words.length - 1 && ' '}
+            </React.Fragment>
+          ))}
         </h2>
-        <p className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8" style={{ opacity: subOpacity, transform: `translateY(${subY}px)`, willChange: 'opacity, transform' }}>
+        <p
+          className="text-[#EDEAFF]/55 text-sm md:text-base text-center max-w-lg leading-relaxed mb-8 transition-all duration-700 ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0px)' : 'translateY(14px)',
+            transitionDelay: '420ms',
+            willChange: 'opacity, transform',
+          }}
+        >
           Get in touch, and we'll walk you through running your fundraise on our platform, from your first investor intro to a closed round.
         </p>
-        <div style={{ opacity: btnOpacity, transform: `translateY(${btnY}px) scale(${btnScale})`, willChange: 'opacity, transform' }}>
+        <div
+          className="transition-all duration-700 ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0px) scale(1)' : 'translateY(16px) scale(0.92)',
+            transitionDelay: '560ms',
+            willChange: 'opacity, transform',
+          }}
+        >
           <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#0A090D] text-sm font-semibold tracking-wide hover:shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:-translate-y-0.5 transition-all duration-300">
             Talk to an expert
           </Link>
@@ -825,12 +743,9 @@ function ContactSectionContent({ contactInner }: { contactInner: number }) {
       </div>
     </div>
   );
-}
+});
 
-// ================================================================================
-// SECTION 21 — GLOBAL STYLES
-// Extracted so it isn't recreated on every scroll re-render.
-// ================================================================================
+// ─── Global styles (extracted so it isn't recreated on every scroll re-render) ─
 const GlobalStyles = React.memo(function GlobalStyles() {
   return (
     <style jsx global>{`
@@ -849,20 +764,13 @@ const GlobalStyles = React.memo(function GlobalStyles() {
   );
 });
 
-// ================================================================================
-// SECTION 22 — MEMOIZED LAYOUT WRAPPERS (Navbar / Footer / Loader)
 // Memoized wrappers for layout components whose props never change during scroll,
 // so they don't get re-invoked on every scroll-driven re-render.
-// ================================================================================
 const MemoNavbar = React.memo(Navbar);
 const MemoFooter = React.memo(Footer);
 const MemoLoader = React.memo(Loader);
 
-// ================================================================================
-// SECTION 23 — ROOT · HomePage (default export)
-// Assembles everything above into the mobile layout or the desktop
-// scroll-driven layout, depending on viewport width.
-// ================================================================================
+// ─── Root ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState(0);
@@ -938,14 +846,10 @@ export default function HomePage() {
   const whitePanelTranslateY = (1 - whiteSlideProgress) * 100;
   const darkSlideProgress = clamp((scrollProgress - DARK_SLIDE_START) / (DARK_SLIDE_END - DARK_SLIDE_START));
   const darkPanelTranslateY = (1 - darkSlideProgress) * 100;
-  const contactSlideProgress = clamp((contactScrollProgress - CONTACT_SLIDE_START) / (CONTACT_SLIDE_END - CONTACT_SLIDE_START));
-  const contactPanelTranslateY = (1 - contactSlideProgress) * 100;
   const whiteInner = scrollProgress - WHITE_SLIDE_END;
   const darkInner = scrollProgress - DARK_SLIDE_END;
-  const contactInner = contactScrollProgress - CONTACT_SLIDE_END + CONTACT_CONTENT_LEAD;
   const shouldHideHero = hideHero || contactScrollProgress > -0.25;
 
-  // ─── Mobile layout branch ─────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black" style={{ overflowX: 'hidden', maxWidth: '100vw' }}>
@@ -963,7 +867,6 @@ export default function HomePage() {
     );
   }
 
-  // ─── Desktop layout branch ────────────────────────────────────────────────
   return (
     <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black">
       <MemoLoader loading={loading} />
@@ -992,13 +895,9 @@ export default function HomePage() {
           </SlidingPanel>
         </div>
       </div>
-      <div className="relative z-10 bg-black min-h-screen w-full"><GlobeSectionContent /></div>
-      <div ref={contactTrackRef} className="relative z-10 bg-black" style={{ height: `${CONTACT_TOTAL_VH}vh` }}>
-        <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none bg-black">
-          <SlidingPanel zIndex={40} background="#050507" translateY={contactPanelTranslateY} showHandle={contactSlideProgress > 0.05 && contactSlideProgress < 0.98} style={{ boxShadow: '0 -12px 80px rgba(0,0,0,0.7)' }}>
-            <ContactSectionContent contactInner={contactInner} />
-          </SlidingPanel>
-        </div>
+      <div className="relative z-10 bg-black w-full"><GlobeSectionContent /></div>
+      <div ref={contactTrackRef} className="relative z-10 bg-[#050507] w-full min-h-screen">
+        <ContactSectionContent />
       </div>
       <div ref={footerTrackRef} className="relative z-[120] isolate w-full bg-black overflow-hidden shadow-[0_-20px_40px_rgba(0,0,0,0.05)]" style={{ minHeight: '100svh' }}>
         <MemoFooter />
