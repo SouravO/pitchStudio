@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   motion,
   useMotionValue,
@@ -8,6 +8,8 @@ import {
   useSpring,
   useMotionTemplate,
   useReducedMotion,
+  useScroll,
+  useMotionValueEvent,
 } from 'framer-motion';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
@@ -277,101 +279,158 @@ function CapabilityCard({ item, index }: { item: (typeof CAPABILITIES)[number]; 
 
 // ─── Main Page Component ─────────────────────────────────────────────────────
 export default function WhatWeDoPage() {
+  const shouldReduceMotion = useReducedMotion();
+
+  // Scroll-parallax hero — implemented WITHOUT CSS `position: sticky`.
+  // Lenis (and other JS-driven smooth-scroll libraries) drive scroll via
+  // their own rAF loop, and `position: sticky` is known to not reliably
+  // recompute against that. So instead we pin the hero manually:
+  //  - The outer section is 160vh tall → 60vh of real extra scroll room
+  //    (160vh section − 100vh viewport). That's the entire scroll budget
+  //    for the effect — short and deliberate, not a long dead zone.
+  //  - `heroProgress` goes 0 → 1 across exactly that 60vh, via
+  //    offset ['start start', 'end end'] (target's bottom edge reaching the
+  //    viewport's bottom edge — the exact point a sticky element would
+  //    naturally release).
+  //  - Text opacity/translateY are driven by that SAME 0 → 1 range, so the
+  //    copy is fully invisible (opacity exactly 0) right as the range ends.
+  //  - While progress < 1, the inner content is `position: fixed` (pinned to
+  //    the viewport). The instant progress reaches 1 — the same moment the
+  //    text finishes disappearing — it flips to `position: absolute` at the
+  //    equivalent offset within the section, handing off with zero gap and
+  //    scrolling away normally straight into section 2. No blank pause.
+  const heroScrollRef = useRef<HTMLElement>(null);
+  const [heroPinned, setHeroPinned] = useState(true);
+
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: heroScrollRef,
+    offset: ['start start', 'end end'],
+  });
+
+  useMotionValueEvent(heroProgress, 'change', (v) => {
+    setHeroPinned(v < 1);
+  });
+
+  const heroContentOpacity = useTransform(heroProgress, [0, 1], [1, 0]);
+  const heroContentY = useTransform(heroProgress, [0, 1], [0, -180]);
+  const heroContentPointerEvents = useTransform(heroProgress, (v) => (v > 0.9 ? 'none' : 'auto'));
+  const heroScrollCueOpacity = useTransform(heroProgress, [0, 0.15], [1, 0]);
+
   return (
-    <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black overflow-x-hidden antialiased">
+    <div className="bg-[#070708] text-[#EDEAFF] selection:bg-[#7C5CFF] selection:text-black [overflow-x:clip] antialiased">
       <Navbar />
 
       {/* ─── SECTION 1: HERO ───
-          Fixed height, load-triggered animations only. No scroll-linked
-          scale/blur/opacity math — that's what caused the blank-screen bug. */}
-      <section className="relative min-h-screen w-full flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
-        {/* Ambient looping backdrop video — gentle self-contained zoom, not tied to scroll */}
-        <motion.div
-          animate={{ scale: [1, 1.06, 1] }}
-          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute inset-0 pointer-events-none opacity-25 mix-blend-screen select-none"
-        >
-          <video
-            src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-connections-loop-27402-large.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#070708] via-transparent to-[#070708]" />
-          <div className="absolute inset-0 bg-[#070708]/40" />
-        </motion.div>
-
-        {/* Static vector grid */}
+          160vh outer wrapper = 60vh of real scroll room beyond the viewport —
+          the entire budget for the effect. Inner content is manually pinned
+          (fixed while heroPinned, then absolute after handoff) — see comment
+          above for why sticky isn't used. Text fades + rises across that full
+          60vh, hitting opacity 0 exactly as the pin releases — no blank pause,
+          straight into normal scrolling and section 2. */}
+      <section ref={heroScrollRef} className="relative w-full" style={{ height: '160vh' }}>
         <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-          style={{
-            backgroundImage:
-              'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)',
-            backgroundSize: '50px 50px',
-          }}
-        />
-
-        <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7 }}>
-            <SectionBadge accent="#7C5CFF">System Protocol v4.0</SectionBadge>
+          className={`${
+            heroPinned ? 'fixed top-0' : 'absolute'
+          } left-0 right-0 z-0 min-h-screen w-full flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden`}
+          style={heroPinned ? undefined : { top: 'calc(100% - 100vh)' }}
+        >
+          {/* Ambient looping backdrop video — gentle self-contained zoom, not tied to scroll */}
+          <motion.div
+            animate={{ scale: [1, 1.06, 1] }}
+            transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-0 pointer-events-none opacity-25 mix-blend-screen select-none"
+          >
+            <video
+              src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-connections-loop-27402-large.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#070708] via-transparent to-[#070708]" />
+            <div className="absolute inset-0 bg-[#070708]/40" />
           </motion.div>
 
-          <h1 className="font-black tracking-tight leading-[1.02] text-[2.8rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] mb-6 max-w-4xl">
-            <span className="block overflow-hidden">
-              <motion.span
-                initial={{ y: '110%' }}
-                animate={{ y: '0%' }}
-                transition={{ duration: 0.8, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-                className="block"
-              >
-                Fundraising,
-              </motion.span>
-            </span>
-            <span className="block overflow-hidden pb-2">
-              <motion.span
-                initial={{ y: '110%' }}
-                animate={{ y: '0%' }}
-                transition={{ duration: 0.8, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
-                className="block bg-gradient-to-tr from-[#7C5CFF] via-[#EDEAFF] to-[#FF8A3D] bg-clip-text text-transparent"
-              >
-                Deconstructed to Signal.
-              </motion.span>
-            </span>
-          </h1>
+          {/* Static vector grid */}
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
+            style={{
+              backgroundImage:
+                'linear-gradient(#EDEAFF 1px, transparent 1px), linear-gradient(90deg, #EDEAFF 1px, transparent 1px)',
+              backgroundSize: '50px 50px',
+            }}
+          />
 
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-            className="max-w-xl text-sm md:text-base font-light text-[#EDEAFF]/45 leading-relaxed mb-10"
+          <motion.div
+            style={
+              shouldReduceMotion
+                ? undefined
+                : { opacity: heroContentOpacity, y: heroContentY, pointerEvents: heroContentPointerEvents }
+            }
+            className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center"
           >
-            We architect institutional-grade interfaces connecting premium ventures directly to verified capital nodes. No cold loops. No platform noise. Just velocity.
-          </motion.p>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7 }}>
+              <SectionBadge accent="#7C5CFF">System Protocol v4.0</SectionBadge>
+            </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.64 }}>
-            <MagneticLink
-              href="/forms"
-              className="relative group overflow-hidden px-8 py-3.5 rounded-full bg-white text-[#0A090D] font-mono text-xs tracking-widest font-bold transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(124,92,255,0.4)] hover:scale-[1.02] inline-block"
+
+            <h1 className="font-black tracking-tight leading-[1.02] text-[2.8rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] mb-6 max-w-4xl">
+              <span className="block overflow-hidden">
+                <motion.span
+                  initial={{ y: '110%' }}
+                  animate={{ y: '0%' }}
+                  transition={{ duration: 0.8, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  className="block"
+                >
+                  Fundraising,
+                </motion.span>
+              </span>
+              <span className="block overflow-hidden pb-2">
+                <motion.span
+                  initial={{ y: '110%' }}
+                  animate={{ y: '0%' }}
+                  transition={{ duration: 0.8, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                  className="block bg-gradient-to-tr from-[#7C5CFF] via-[#EDEAFF] to-[#FF8A3D] bg-clip-text text-transparent"
+                >
+                  Deconstructed to Signal.
+                </motion.span>
+              </span>
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+              className="max-w-xl text-sm md:text-base font-light text-[#EDEAFF]/45 leading-relaxed mb-10"
             >
-              <span className="relative z-10">INITIALIZE ACCESS NODE</span>
-              <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 bg-[#7C5CFF] transition-transform duration-300 ease-out z-0" />
-            </MagneticLink>
+              We architect institutional-grade interfaces connecting premium ventures directly to verified capital nodes. No cold loops. No platform noise. Just velocity.
+            </motion.p>
+
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.64 }}>
+              <MagneticLink
+                href="/forms"
+                className="relative group overflow-hidden px-8 py-3.5 rounded-full bg-white text-[#0A090D] font-mono text-xs tracking-widest font-bold transition-all duration-300 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(124,92,255,0.4)] hover:scale-[1.02] inline-block"
+              >
+                <span className="relative z-10">INITIALIZE ACCESS NODE</span>
+                <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 bg-[#7C5CFF] transition-transform duration-300 ease-out z-0" />
+              </MagneticLink>
+            </motion.div>
+          </motion.div>
+
+          {/* Simple CSS-driven scroll cue — fades out quickly once scrolling starts */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1 }}
+            style={shouldReduceMotion ? undefined : { opacity: heroScrollCueOpacity }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          >
+            <span className="font-mono text-[8px] tracking-[0.4em] uppercase text-[#EDEAFF]/20">SCROLL</span>
+            <div className="w-[1px] h-8 bg-gradient-to-b from-[#7C5CFF]/80 to-transparent animate-pulse" />
           </motion.div>
         </div>
-
-        {/* Simple CSS-driven scroll cue — no JS scroll tracking needed */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="font-mono text-[8px] tracking-[0.4em] uppercase text-[#EDEAFF]/20">SCROLL</span>
-          <div className="w-[1px] h-8 bg-gradient-to-b from-[#7C5CFF]/80 to-transparent animate-pulse" />
-        </motion.div>
       </section>
 
       {/* ─── SECTION 2: WHAT WE DO ───
